@@ -1,2 +1,1 @@
-# american_dl
-LSM with NNs for pricing American Options
+# LSM with NNs for pricing American Options
