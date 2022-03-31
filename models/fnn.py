@@ -23,7 +23,7 @@ class FNN(pl.LightningModule):
 
         if activation_function == "relu":
             act_fn = nn.ReLU()
-        if activation_function == "tanh":
+        elif activation_function == "tanh":
             act_fn = nn.Tanh()
         else:
             raise NotImplementedError
