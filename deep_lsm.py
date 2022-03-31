@@ -123,7 +123,7 @@ def calculate_lower_bound(
         L = g_k.mean()
         sigma_L = g_k.std()
 
-        return lower_ci_bound(L, alpha, sigma_L, n_paths)
+        return L, sigma_L, lower_ci_bound(L, alpha, sigma_L, n_paths)
 
 
 def lower_ci_bound(L, alpha, sigma, n_pricing):
