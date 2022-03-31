@@ -1,3 +1,5 @@
+from typing import Callable
+
 import pytorch_lightning as pl
 import torch
 from torch import nn
@@ -13,8 +15,11 @@ class FNN(pl.LightningModule):
         batch_norm: bool,
         use_xavier_init: bool,
         activation_function: str,
+        loss_fn: Callable,
     ) -> None:
         super().__init__()
+
+        self.loss_fn = loss_fn
 
         if activation_function == "relu":
             act_fn = nn.ReLU()
