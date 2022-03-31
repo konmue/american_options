@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Callable
 
 import pytorch_lightning as pl
@@ -5,34 +6,42 @@ import torch
 from torch import nn
 
 
+@dataclass
+class FNNParams:
+    input_dim: int
+    output_dim: int
+    fc_dims: list
+    input_scaling: bool
+    batch_norm: bool
+    use_xavier_init: bool
+    res_net: bool
+    activation_function: str
+    loss_fn: str
+
+
 class FNN(pl.LightningModule):
-    def __init__(
-        self,
-        input_dim: int,
-        output_dim: int,
-        fc_dims: list,
-        input_scaling: bool,
-        batch_norm: bool,
-        use_xavier_init: bool,
-        activation_function: str,
-        loss_fn: Callable,
-    ) -> None:
+    def __init__(self, params: FNNParams) -> None:
         super().__init__()
 
-        self.loss_fn = loss_fn
+        self.res_net = params.res_net
 
-        if activation_function == "relu":
+        if params.loss_fn == "mse":
+            self.loss_fn = nn.functional.mse_loss
+        else:
+            raise NotImplementedError
+
+        if params.activation_function == "relu":
             act_fn = nn.ReLU()
-        elif activation_function == "tanh":
+        elif params.activation_function == "tanh":
             act_fn = nn.Tanh()
         else:
             raise NotImplementedError
 
-        dims = [input_dim, *fc_dims, output_dim]
+        dims = [params.input_dim, *params.fc_dims, params.output_dim]
         layers = []
 
-        if input_scaling:
-            layers.append(nn.BatchNorm1d(input_dim))
+        if params.input_scaling:
+            layers.append(nn.BatchNorm1d(params.input_dim))
 
         for i, dim in enumerate(dims):
 
@@ -46,7 +55,7 @@ class FNN(pl.LightningModule):
 
             else:
 
-                if batch_norm:
+                if params.batch_norm:
                     layers.extend(
                         [
                             nn.Linear(dims[i - 1], dim),
@@ -59,13 +68,19 @@ class FNN(pl.LightningModule):
 
         self.model = nn.Sequential(*layers)
 
-        if use_xavier_init:
+        if params.use_xavier_init:
             for layer in self.model:
                 if isinstance(layer, nn.Linear):
                     nn.init.xavier_normal_(layer.weight)
 
     def forward(self, x):
-        return self.model(x)
+
+        if not self.res_net:
+            return self.model(x)
+
+        # assumes that last argument is the value of the payoff if exercised now
+        payoff_now = x[:, -1].unsqueeze(dim=-1)
+        return payoff_now + self.model(x)
 
     def training_step(self, batch, batch_idx):
         x, y = batch
