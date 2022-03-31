@@ -7,39 +7,57 @@ class FNN(pl.LightningModule):
     def __init__(
         self,
         input_dim: int,
-        fc_dims: list,
         output_dim: int,
-        initial_batch_norm: bool,
-        hidden_batch_norm: bool,
-        act_fn,
-        loss_fn,
-        learning_rate: float,
+        fc_dims: list,
+        input_scaling: bool,
+        batch_norm: bool,
+        use_xavier_init: bool,
+        activation_function: str,
     ) -> None:
         super().__init__()
 
-        self.loss_fn = loss_fn
-        self.learning_rate = learning_rate
+        if activation_function == "relu":
+            act_fn = nn.ReLU()
+        if activation_function == "tanh":
+            act_fn = nn.Tanh()
+        else:
+            raise NotImplementedError
 
-        for i, fc_dim in enumerate(fc_dims):
+        dims = [input_dim, *fc_dims, output_dim]
+        layers = []
+
+        if input_scaling:
+            layers.append(nn.BatchNorm1d(input_dim))
+
+        for i, dim in enumerate(dims):
+
             if i == 0:
-                if initial_batch_norm:
-                    layers = [
-                        nn.BatchNorm1d(input_dim),
-                        nn.Linear(input_dim, fc_dims[0]),
-                        act_fn,
-                    ]
-                else:
-                    layers = [nn.Linear(input_dim, fc_dims[0]), act_fn]
+                continue
+
+            if i == len(dims) - 1:
+                layers.append(
+                    nn.Linear(dims[i - 1], dim),
+                )
 
             else:
-                layers.append(nn.Linear(fc_dims[i - 1], fc_dim))
-                if hidden_batch_norm:
-                    layers.append(nn.BatchNorm1d(fc_dim))
-                layers.append(act_fn)
 
-        layers.append(nn.Linear(fc_dims[-1], output_dim))
+                if batch_norm:
+                    layers.extend(
+                        [
+                            nn.Linear(dims[i - 1], dim),
+                            nn.BatchNorm1d(dim),
+                            act_fn,
+                        ]
+                    )
+                else:
+                    layers.extend([nn.Linear(dims[i - 1], dim), act_fn])
 
         self.model = nn.Sequential(*layers)
+
+        if use_xavier_init:
+            for layer in self.model:
+                if isinstance(layer, nn.Linear):
+                    nn.init.xavier_normal_(layer.weight)
 
     def forward(self, x):
         return self.model(x)
