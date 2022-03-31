@@ -102,7 +102,7 @@ def calculate_lower_bound(
     for n in tqdm(np.arange(start=n_steps - 1, stop=-1, step=-1)):
 
         x_n = price_paths[np.arange(n_paths), n, :]
-        y = g(np.ones(n_paths) * n, x_n)
+        y = payoff(np.ones(n_paths) * n, x_n)
 
         if n == n_steps - 1:
             g_k = y.copy()
