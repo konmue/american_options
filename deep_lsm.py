@@ -4,7 +4,7 @@ import numpy as np
 import pytorch_lightning as pl
 import torch
 from scipy.stats import norm
-from torch.data.utils import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 
 from models.fnn import FNN, FNNParams
@@ -126,5 +126,5 @@ def calculate_lower_bound(
         return lower_ci_bound(L, alpha, sigma_L, n_paths)
 
 
-def lower_ci_bound(L, alpha, sigma, n_paths):
-    return L - norm.ppf(alpha / 2) * sigma / (n_paths**0.5)
+def lower_ci_bound(L, alpha, sigma, n_pricing):
+    return L - norm.ppf(alpha / 2) * sigma / (n_pricing**0.5)
