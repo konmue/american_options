@@ -101,13 +101,14 @@ def calculate_lower_bound(
         else:
             model.eval()
 
-    for n in tqdm(np.arange(start=n_steps - 1, stop=-1, step=-1)):
+    for n in tqdm(np.arange(start=n_steps, stop=-1, step=-1)):
 
-        x_n = paths[np.arange(n_paths), n, :]
-        y = payoff(np.ones(n_paths) * n, x_n)
+        x_n = paths[:, n]
+        payoff_now = payoff(n, x_n)
 
-        if n == n_steps - 1:
-            g_k = y.copy()
+        if n == n_steps:
+            payoff_at_stop = payoff_now.copy()
+            continue
 
         if n != 0:
             c = (
@@ -119,14 +120,33 @@ def calculate_lower_bound(
         else:
             c = models[f"model_{n}"]
 
-        idx = y >= c
-        g_k[idx] = y[idx]
+        idx = payoff_now >= c
+        payoff_at_stop[idx] = payoff_now[idx]
 
-    L = g_k.mean()
-    sigma_estimate = g_k.std()
+    L = payoff_at_stop.mean()
+    sigma_estimate = payoff_at_stop.std()
 
-    return L, sigma_estimate, confidence_interval_endpoint(upper_endpoint=False, bound_estimate=L, sigma_estimate=sigma_estimate, n_paths=n_paths, alpha=alpha)
+    return (
+        L,
+        sigma_estimate,
+        confidence_interval_endpoint(
+            upper_endpoint=False,
+            bound_estimate=L,
+            sigma_estimate=sigma_estimate,
+            n_paths=n_paths,
+            alpha=alpha,
+        ),
+    )
 
 
-def confidence_interval_endpoint(upper_endpoint: bool, bound_estimate: float, sigma_estimate: float, n_paths: int, alpha: float = 0.05):
-    return bound_estimate + upper_endpoint * norm.ppf(1 - (alpha / 2)) * sigma_estimate / (n_paths**0.5)
+def confidence_interval_endpoint(
+    upper_endpoint: bool,
+    bound_estimate: float,
+    sigma_estimate: float,
+    n_paths: int,
+    alpha: float = 0.05,
+):
+    sign = 1 if upper_endpoint else -1
+    return bound_estimate + sign * norm.ppf(1 - (alpha / 2)) * sigma_estimate / (
+        n_paths**0.5
+    )

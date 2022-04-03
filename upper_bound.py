@@ -6,7 +6,7 @@ import torch
 from deep_lsm import confidence_interval_endpoint
 
 
-def upper_bound(
+def calculate_upper_bound(
     paths: np.ndarray,
     payoff: Callable,
     models: dict,
