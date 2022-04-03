@@ -120,10 +120,10 @@ def calculate_lower_bound(
         idx = y >= c
         g_k[idx] = y[idx]
 
-        L = g_k.mean()
-        sigma_L = g_k.std()
+    L = g_k.mean()
+    sigma_L = g_k.std()
 
-        return L, sigma_L, lower_ci_bound(L, alpha, sigma_L, n_paths)
+    return L, sigma_L, lower_ci_bound(L, alpha, sigma_L, n_paths)
 
 
 def lower_ci_bound(L, alpha, sigma, n_pricing):
