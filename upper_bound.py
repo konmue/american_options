@@ -10,7 +10,6 @@ def upper_bound(
     paths: np.ndarray,
     payoff: Callable,
     models: dict,
-    c_0: np.ndarray,
     alpha: float = 0.05,
 ):
 
@@ -47,7 +46,7 @@ def upper_bound(
         all_indicators[:, n] = current_payoff >= continuation_values
 
     shifted_continuation_values = np.c_[
-        np.ones((n_paths, 1)) * c_0, all_continuation_values[:, 1:-1]
+        np.ones((n_paths, 1)) * models["model_0"], all_continuation_values[:, 1:-1]
     ]
 
     martingale_increments = (

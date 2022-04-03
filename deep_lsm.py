@@ -79,16 +79,15 @@ def train_models(
         stopping_times[idx] = n
 
     # value at time 0 (price) given by mean payoff at optimal stopping times
-    c_0 = payoff(stopping_times, stopped_path).mean()
+    models["model_0"] = payoff(stopping_times, stopped_path).mean()
 
-    return models, c_0
+    return models
 
 
 def calculate_lower_bound(
     paths: np.ndarray,
     payoff: Callable,
     models: dict,
-    c_0: np.ndarray,
     alpha: float = 0.05,  # confidence level for CI
 ):
     # Calculating the lower pricing bound (Section 3.1 from the paper)
@@ -96,8 +95,11 @@ def calculate_lower_bound(
     n_steps = paths.shape[1] - 1
     n_paths = paths.shape[0]
 
-    for model in models.values():
-        model.eval()
+    for name, model in models.items():
+        if name[-1] == "0":
+            continue
+        else:
+            model.eval()
 
     for n in tqdm(np.arange(start=n_steps - 1, stop=-1, step=-1)):
 
@@ -115,7 +117,7 @@ def calculate_lower_bound(
                 .numpy()
             )
         else:
-            c = c_0
+            c = models[f"model_{n}"]
 
         idx = y >= c
         g_k[idx] = y[idx]
