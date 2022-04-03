@@ -11,16 +11,16 @@ from models.fnn import FNN, FNNParams
 
 
 def train_models(
-    n_steps: int,  # number of time periods
     batch_size: int,
-    sim_paths: np.ndarray,
+    paths: np.ndarray,
     epoch_lr_schedule: dict,
     fnn_params: FNNParams,
     payoff: Callable,
 ):
     """The LSM algorithm with neural networks as in Section 2 of the paper."""
 
-    n_paths = sim_paths.shape[0]
+    n_paths = paths.shape[0]
+    n_steps = paths.shape[1] - 1
     models = {}
 
     # stopping times s initialized to last period
@@ -30,10 +30,10 @@ def train_models(
         print(f"Training network {n}")
 
         # paths at (so far) optimal stopping time
-        stopped_path = sim_paths[np.arange(n_paths), stopping_times, :]
+        stopped_path = paths[np.arange(n_paths), stopping_times, :]
 
         # paths at point n
-        x_n = sim_paths[:, n, :]
+        x_n = paths[:, n, :]
 
         # option payoff if exercise now (not necassary, but usefule additional feature)
         payoff_feature = payoff(n, x_n)
@@ -85,8 +85,7 @@ def train_models(
 
 
 def calculate_lower_bound(
-    n_steps: int,
-    price_paths: np.ndarray,
+    paths: np.ndarray,
     payoff: Callable,
     models: dict,
     c_0: np.ndarray,
@@ -94,14 +93,15 @@ def calculate_lower_bound(
 ):
     # Calculating the lower pricing bound (Section 3.1 from the paper)
 
-    n_paths = price_paths.shape[0]
+    n_steps = paths.shape[1] - 1
+    n_paths = paths.shape[0]
 
     for model in models.values():
         model.eval()
 
     for n in tqdm(np.arange(start=n_steps - 1, stop=-1, step=-1)):
 
-        x_n = price_paths[np.arange(n_paths), n, :]
+        x_n = paths[np.arange(n_paths), n, :]
         y = payoff(np.ones(n_paths) * n, x_n)
 
         if n == n_steps - 1:
@@ -121,10 +121,10 @@ def calculate_lower_bound(
         g_k[idx] = y[idx]
 
     L = g_k.mean()
-    sigma_L = g_k.std()
+    sigma_estimate = g_k.std()
 
-    return L, sigma_L, lower_ci_bound(L, alpha, sigma_L, n_paths)
+    return L, sigma_estimate, confidence_interval_endpoint(upper_endpoint=False, bound_estimate=L, sigma_estimate=sigma_estimate, n_paths=n_paths, alpha=alpha)
 
 
-def lower_ci_bound(L, alpha, sigma, n_pricing):
-    return L - norm.ppf(1 - (alpha / 2)) * sigma / (n_pricing**0.5)
+def confidence_interval_endpoint(upper_endpoint: bool, bound_estimate: float, sigma_estimate: float, n_paths: int, alpha: float = 0.05):
+    return bound_estimate + upper_endpoint * norm.ppf(1 - (alpha / 2)) * sigma_estimate / (n_paths**0.5)
