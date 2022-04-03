@@ -127,4 +127,4 @@ def calculate_lower_bound(
 
 
 def lower_ci_bound(L, alpha, sigma, n_pricing):
-    return L - norm.ppf(alpha / 2) * sigma / (n_pricing**0.5)
+    return L - norm.ppf(1 - (alpha / 2)) * sigma / (n_pricing**0.5)
