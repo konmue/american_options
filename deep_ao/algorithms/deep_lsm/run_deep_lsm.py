@@ -66,5 +66,9 @@ def run_deep_lsm(
         number_paths["n_upper"], n_assets, initial_value, **simulation_params
     )
     U, sigma_U, upper_bound = calculate_upper_bound(paths_upper, payoff, models)
+    del paths_upper
 
-    return L, sigma_L, lower_bound, U, sigma_U, upper_bound
+    summary = L, sigma_L, lower_bound, U, sigma_U, upper_bound
+    print(summary)
+
+    return summary
