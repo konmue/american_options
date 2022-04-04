@@ -73,6 +73,7 @@ def run_deep_lsm(
     U, sigma_U, upper_bound = calculate_upper_bound(paths_upper, payoff, models)
 
     del paths_upper
+    del models
     gc.collect()
 
     summary = L, sigma_L, lower_bound, U, sigma_U, upper_bound
