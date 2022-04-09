@@ -1,11 +1,13 @@
-number_assets = [5, 10]
-initial_values = [90, 100, 110]
+# number_assets = [5, 10]
+number_assets = [5]
+# initial_values = [90, 100, 110]
+initial_values = [90]
 
 BATCH_SIZE = 8192
 
 number_paths = {
-    "n_train": 5_000,  # do they use 50m paths?
-    "n_upper": 5_000,
+    "n_train": 500_000,  # do they use 50m paths?
+    "n_upper": 500_000,
     "n_lower": 2000,
 }
 
