@@ -4,16 +4,16 @@ initial_values = [90, 100, 110]
 BATCH_SIZE = 8192
 
 number_paths = {
-    "n_train": 5_000_000,  # do they use 50m paths?
-    "n_upper": 5_000_000,
-    "n_lower": 5_000_000,
+    "n_train": 5_000,  # do they use 50m paths?
+    "n_upper": 5_000,
+    "n_lower": 2000,
 }
 
 
 simulation_params = {
     "n_steps": 9,
     "interest_rate": 0.05,
-    "delta": 0.1,
+    "dividend_yield": 0.1,
     "sigma": 0.2,
     "maturity": 3,  # in years,
 }

@@ -7,7 +7,7 @@ def geometric_bm_generator(
     initial_value: float,
     n_steps: int,
     interest_rate: float,
-    delta: float,
+    dividend_yield: float,
     sigma: float,
     maturity: float,
 ) -> np.ndarray:
@@ -16,7 +16,9 @@ def geometric_bm_generator(
     bm_increments = np.random.normal(
         scale=np.sqrt(delta_t), size=(n_simulations, n_steps, dim)
     )
-    log_increments = (interest_rate - delta - ((sigma**2) / 2)) * delta_t + sigma * bm_increments
+    log_increments = (
+        interest_rate - dividend_yield - ((sigma**2) / 2)
+    ) * delta_t + sigma * bm_increments
     log_increments = np.concatenate(
         (np.ones((n_simulations, 1, dim)) * np.log(initial_value), log_increments),
         axis=1,
