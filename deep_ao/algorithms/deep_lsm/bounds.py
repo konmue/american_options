@@ -48,12 +48,6 @@ def calculate_payoffs_at_stop(
 
     path_steps = paths.shape[1] - 1
 
-    for name, model in models.items():
-        if name[-1] == "0":
-            continue
-        else:
-            model.eval()
-
     payoff_at_stop = payoff(n_steps, paths[:, path_steps])
 
     time_index = np.arange(start=n_steps - 1, stop=time - 1, step=-1)

@@ -60,6 +60,12 @@ def run_deep_lsm(
     del paths_train  # free up memory
     gc.collect()
 
+    for name, model in models.items():
+        if name[-1] == "0":
+            continue
+        else:
+            model.eval()
+
     paths_lower = geometric_bm_generator(
         number_paths["n_lower"], n_assets, initial_value, **simulation_params
     )
