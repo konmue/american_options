@@ -7,7 +7,7 @@ BATCH_SIZE = 8192
 
 number_paths = {
     "n_train": 5_000_000,  # do they use 50m paths?
-    "n_upper": 200,
+    "n_upper": 2000,
     "n_lower": 5_000_000,
 }
 

@@ -70,8 +70,6 @@ def run_deep_lsm(
         number_paths["n_lower"], n_assets, initial_value, **simulation_params
     )
     L, sigma_L, lower_bound = calculate_lower_bound(paths_lower, payoff, models)
-    print(L)
-    sys.exit()
 
     del paths_lower
     gc.collect()
