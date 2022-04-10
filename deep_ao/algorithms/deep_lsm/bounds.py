@@ -106,7 +106,6 @@ def calculate_upper_bound(
                 n_steps=n_steps - n,
                 n_simulations=n_nested_paths,
             )
-            print(paths_from_here.shape)
             continuation_value = calculate_payoffs_at_stop(
                 paths_from_here, payoff, models, n_steps, time=n
             ).mean()
