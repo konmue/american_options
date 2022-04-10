@@ -1,3 +1,4 @@
+import sys
 from typing import Callable
 
 import numpy as np
@@ -54,6 +55,7 @@ def calculate_payoffs_at_stop(
             model.eval()
 
     payoff_at_stop = payoff(n_steps, paths[:, path_steps])
+
     time_index = np.arange(start=n_steps - 1, stop=time - 1, step=-1)
     path_index = np.arange(len(time_index))[::-1]
 
@@ -110,6 +112,7 @@ def calculate_upper_bound(
                 n_steps=n_steps - n,
                 n_simulations=n_nested_paths,
             )
+            print(paths_from_here.shape)
             continuation_value = calculate_payoffs_at_stop(
                 paths_from_here, payoff, models, n_steps, time=n
             ).mean()
