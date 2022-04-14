@@ -109,6 +109,7 @@ def calculate_upper_bound(
             continuation_value = calculate_payoffs_at_stop(
                 paths_from_here, payoff, models, n_steps, time=n
             ).mean()
+            # check dim here; if cont value includes payoff now; could this be wrong?
             all_continuation_values[i, n] = continuation_value
 
         model_continuation_values = (
