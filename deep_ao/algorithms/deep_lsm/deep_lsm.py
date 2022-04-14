@@ -1,3 +1,4 @@
+import gc
 from typing import Callable
 
 import numpy as np
@@ -5,10 +6,9 @@ import pytorch_lightning as pl
 import torch
 from torch.utils.data import DataLoader
 
+from deep_ao.algorithms.deep_lsm.config import MAX_EPOCHS
 from deep_ao.data.utils import prepare_training_data
 from deep_ao.models.fnn import FNN, FNNParams
-
-MAX_EPOCHS = 1  # not using the same paths twice
 
 
 def deep_lsm(
@@ -36,7 +36,7 @@ def deep_lsm(
         # paths at point n
         x_n = paths[:, n, :]
 
-        # option payoff if exercise now (not necassary, but usefule additional feature)
+        # option payoff if exercise now (not necessary, but usefule additional feature)
         payoff_now = payoff(n, x_n)
 
         dataset = prepare_training_data(
@@ -52,7 +52,7 @@ def deep_lsm(
             model = FNN(fnn_params_others)
             model.load_state_dict(state_dict)
 
-        trainer = pl.Trainer(max_epochs=MAX_EPOCHS)
+        trainer = pl.Trainer(max_epochs=MAX_EPOCHS, enable_model_summary=False)
         trainer.fit(model, dataloader)
 
         # saving the model
@@ -67,6 +67,10 @@ def deep_lsm(
             .squeeze()
         )
         stopping_times[idx] = n
+
+        del dataset
+        del dataloader
+        gc.collect()
 
     # value at time 0 (price) given by mean payoff at optimal stopping times
     models["model_0"] = payoff(stopping_times, stopped_paths).mean()

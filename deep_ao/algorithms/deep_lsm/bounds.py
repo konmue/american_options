@@ -1,13 +1,10 @@
-import sys
+import gc
 from typing import Callable
 
 import numpy as np
 import torch
-from grpc import Call
 from scipy.stats import norm
 from tqdm import tqdm
-
-from deep_ao.data.geometric_bm import geometric_bm_generator
 
 
 def calculate_lower_bound(
@@ -60,7 +57,9 @@ def calculate_payoffs_at_stop(
 
         if n != 0:
             continuation_values = (
-                models[f"model_{n}"](torch.tensor(np.c_[x_n, payoff(n, x_n)]).float())
+                models[f"model_{n}"](
+                    torch.from_numpy(np.c_[x_n, payoff(n, x_n)]).float()
+                )
                 .squeeze()
                 .detach()
                 .numpy()
@@ -106,14 +105,18 @@ def calculate_upper_bound(
                 n_steps=n_steps - n,
                 n_simulations=n_nested_paths,
             )
+            paths_from_here = paths_from_here[:, 1:]
             continuation_value = calculate_payoffs_at_stop(
                 paths_from_here, payoff, models, n_steps, time=n
             ).mean()
             # check dim here; if cont value includes payoff now; could this be wrong?
             all_continuation_values[i, n] = continuation_value
 
+            del paths_from_here
+            gc.collect()
+
         model_continuation_values = (
-            models[f"model_{n}"](torch.tensor(np.c_[x_n, payoff(n, x_n)]).float())
+            models[f"model_{n}"](torch.from_numpy(np.c_[x_n, payoff(n, x_n)]).float())
             .squeeze()
             .detach()
             .numpy()

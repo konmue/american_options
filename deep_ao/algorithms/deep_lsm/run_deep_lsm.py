@@ -1,5 +1,4 @@
 import gc
-import sys
 
 from deep_ao.algorithms.deep_lsm.bounds import (
     calculate_lower_bound,
@@ -34,7 +33,7 @@ def run_deep_lsm(
             x,
             r=simulation_params["interest_rate"],
             N=simulation_params["n_steps"],
-            T=simulation_params["maturity"],
+            T=simulation_params["delta_t"] * simulation_params["n_steps"],
             K=strike,
         )
 
