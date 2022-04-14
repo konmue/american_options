@@ -1,7 +1,7 @@
 # number_assets = [5, 10]
 number_assets = [5]
 # initial_values = [90, 100, 110]
-initial_values = [90, 100]
+initial_values = [90]
 
 
 simulation_params = {
@@ -16,7 +16,7 @@ STRIKE = 100
 
 MAX_EPOCHS = 1  # not using the same paths twice
 BATCH_SIZE = 8192
-STEPS = 300
+STEPS = 600
 training_schedule_first = {
     int(STEPS * 0.1): 0.1,
     int(STEPS * 0.2): 0.01,
