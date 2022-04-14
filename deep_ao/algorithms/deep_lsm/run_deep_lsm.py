@@ -1,4 +1,5 @@
 import gc
+import sys
 
 from deep_ao.algorithms.deep_lsm.bounds import (
     calculate_lower_bound,
@@ -59,6 +60,12 @@ def run_deep_lsm(
     del paths_train  # free up memory
     gc.collect()
 
+    for name, model in models.items():
+        if name[-1] == "0":
+            continue
+        else:
+            model.eval()
+
     paths_lower = geometric_bm_generator(
         number_paths["n_lower"], n_assets, initial_value, **simulation_params
     )
@@ -70,7 +77,20 @@ def run_deep_lsm(
     paths_upper = geometric_bm_generator(
         number_paths["n_upper"], n_assets, initial_value, **simulation_params
     )
-    U, sigma_U, upper_bound = calculate_upper_bound(paths_upper, payoff, models)
+
+    def path_generator(
+        initial_value: float,
+        n_steps: int,
+        n_simulations: int,
+    ):
+        params = {key: value for (key, value) in simulation_params.items()}
+        params["n_steps"] = n_steps
+
+        return geometric_bm_generator(n_simulations, n_assets, initial_value, **params)
+
+    U, sigma_U, upper_bound = calculate_upper_bound(
+        paths_upper, payoff, models, path_generator
+    )
 
     del paths_upper
     del models

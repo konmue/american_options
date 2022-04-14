@@ -1,11 +1,13 @@
-number_assets = [5, 10]
-initial_values = [90, 100, 110]
+# number_assets = [5, 10]
+number_assets = [5]
+# initial_values = [90, 100, 110]
+initial_values = [90, 100]
 
 BATCH_SIZE = 8192
 
 number_paths = {
     "n_train": 5_000_000,  # do they use 50m paths?
-    "n_upper": 5_000_000,
+    "n_upper": 2000,
     "n_lower": 5_000_000,
 }
 
@@ -13,7 +15,7 @@ number_paths = {
 simulation_params = {
     "n_steps": 9,
     "interest_rate": 0.05,
-    "delta": 0.1,
+    "dividend_yield": 0.1,
     "sigma": 0.2,
     "maturity": 3,  # in years,
 }
