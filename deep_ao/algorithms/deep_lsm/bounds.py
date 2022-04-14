@@ -112,9 +112,6 @@ def calculate_upper_bound(
             # check dim here; if cont value includes payoff now; could this be wrong?
             all_continuation_values[i, n] = continuation_value
 
-            del paths_from_here
-            gc.collect()
-
         model_continuation_values = (
             models[f"model_{n}"](torch.from_numpy(np.c_[x_n, payoff(n, x_n)]).float())
             .squeeze()

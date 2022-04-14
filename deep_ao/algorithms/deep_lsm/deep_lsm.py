@@ -42,7 +42,7 @@ def deep_lsm(
         dataset = prepare_training_data(
             x_n, payoff_now, stopping_times, stopped_paths, payoff
         )
-        dataloader = DataLoader(dataset, batch_size=batch_size, num_workers=0)
+        dataloader = DataLoader(dataset, batch_size=batch_size, num_workers=4)
 
         # defining the models; copying weights from previous model
         if n == n_steps - 1:
@@ -68,9 +68,9 @@ def deep_lsm(
         )
         stopping_times[idx] = n
 
-        del dataset
-        del dataloader
-        gc.collect()
+        #del dataset
+        #del dataloader
+        #gc.collect()
 
     # value at time 0 (price) given by mean payoff at optimal stopping times
     models["model_0"] = payoff(stopping_times, stopped_paths).mean()

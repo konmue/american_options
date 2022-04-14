@@ -60,8 +60,8 @@ def run_deep_lsm(
         batch_size, paths_train, fnn_params_first, fnn_params_others, payoff
     )
 
-    del paths_train  # free up memory
-    gc.collect()
+    # del paths_train  # free up memory
+    # gc.collect()
 
     for name, model in models.items():
         if name[-1] == "0":
@@ -74,8 +74,8 @@ def run_deep_lsm(
     )
     L, sigma_L, lower_bound = calculate_lower_bound(paths_lower, payoff, models)
 
-    del paths_lower
-    gc.collect()
+    # del paths_lower
+    # gc.collect()
 
     paths_upper = geometric_bm_generator(
         number_paths["n_upper"], n_assets, initial_value, **simulation_params
@@ -95,9 +95,9 @@ def run_deep_lsm(
         paths_upper, payoff, models, path_generator
     )
 
-    del paths_upper
-    del models
-    gc.collect()
+    # del paths_upper
+    # del models
+    # gc.collect()
 
     summary = L, sigma_L, lower_bound, U, sigma_U, upper_bound
     print(summary)
