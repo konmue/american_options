@@ -1,9 +1,12 @@
 import gc
 
+import numpy as np
+
 from deep_ao.algorithms.deep_lsm.bounds import (
     calculate_lower_bound,
     calculate_upper_bound,
 )
+from deep_ao.algorithms.deep_lsm.config import SEED
 from deep_ao.algorithms.deep_lsm.deep_lsm import deep_lsm
 from deep_ao.data.geometric_bm import geometric_bm_generator
 from deep_ao.models.fnn import FNNParams, get_dims
@@ -21,6 +24,7 @@ def run_deep_lsm(
     training_schedule_others: dict,
     pre_nn_params: dict,
 ):
+    np.random.seed(SEED)
     input_dim, fc_dims = get_dims(n_assets, pre_nn_params["fc_dims_pre"])
 
     paths_train = geometric_bm_generator(

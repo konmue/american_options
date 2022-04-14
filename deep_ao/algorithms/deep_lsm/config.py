@@ -1,3 +1,5 @@
+SEED = 1234
+
 # number_assets = [5, 10]
 number_assets = [5]
 # initial_values = [90, 100, 110]
