@@ -34,7 +34,7 @@ def deep_lsm(
         stopped_paths = paths[np.arange(n_paths), stopping_times, :]
 
         # paths at point n
-        x_n = paths[:, n, :]
+        x_n = paths[:, n]
 
         # option payoff if exercise now (not necessary, but usefule additional feature)
         payoff_now = payoff(n, x_n)
@@ -68,9 +68,9 @@ def deep_lsm(
         )
         stopping_times[idx] = n
 
-        #del dataset
-        #del dataloader
-        #gc.collect()
+        # del dataset
+        # del dataloader
+        # gc.collect()
 
     # value at time 0 (price) given by mean payoff at optimal stopping times
     models["model_0"] = payoff(stopping_times, stopped_paths).mean()
