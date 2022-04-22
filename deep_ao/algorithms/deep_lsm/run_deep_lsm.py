@@ -6,10 +6,10 @@ from deep_ao.algorithms.deep_lsm.bounds import (
     calculate_lower_bound,
     calculate_upper_bound,
 )
-from deep_ao.algorithms.deep_lsm.config import SEED
-from deep_ao.algorithms.deep_lsm.deep_lsm import deep_lsm
+from deep_ao.algorithms.deep_lsm.deep_lsm import train
+from deep_ao.config import SEED
 from deep_ao.data.geometric_bm import geometric_bm_generator
-from deep_ao.models.fnn import FNNParams, get_dims
+from deep_ao.models.fnn import FNNLightningParams, get_dims
 from deep_ao.payoffs.bermudan_max_call import bermudan_max_call
 
 
@@ -31,7 +31,7 @@ def run_deep_lsm(
         number_paths["n_train"], n_assets, initial_value, **simulation_params
     )
 
-    def payoff(n, x):
+    def payoff_fn(n, x):
         return bermudan_max_call(
             n,
             x,
@@ -41,14 +41,14 @@ def run_deep_lsm(
             K=strike,
         )
 
-    fnn_params_first = FNNParams(
+    fnn_params_first = FNNLightningParams(
         input_dim,
         1,
         fc_dims,
         training_schedule_first,
         *list(pre_nn_params.values())[1:]
     )
-    fnn_params_others = FNNParams(
+    fnn_params_others = FNNLightningParams(
         input_dim,
         1,
         fc_dims,
@@ -56,8 +56,8 @@ def run_deep_lsm(
         *list(pre_nn_params.values())[1:]
     )
 
-    models = deep_lsm(
-        batch_size, paths_train, fnn_params_first, fnn_params_others, payoff
+    models = train(
+        batch_size, paths_train, fnn_params_first, fnn_params_others, payoff_fn
     )
 
     # del paths_train  # free up memory
@@ -72,7 +72,7 @@ def run_deep_lsm(
     paths_lower = geometric_bm_generator(
         number_paths["n_lower"], n_assets, initial_value, **simulation_params
     )
-    L, sigma_L, lower_bound = calculate_lower_bound(paths_lower, payoff, models)
+    L, sigma_L, lower_bound = calculate_lower_bound(paths_lower, payoff_fn, models)
 
     # del paths_lower
     # gc.collect()
@@ -92,7 +92,7 @@ def run_deep_lsm(
         return geometric_bm_generator(n_simulations, n_assets, initial_value, **params)
 
     U, sigma_U, upper_bound = calculate_upper_bound(
-        paths_upper, payoff, models, path_generator
+        paths_upper, payoff_fn, models, path_generator
     )
 
     # del paths_upper

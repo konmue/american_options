@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from deep_ao.models.fnn import FNN, FNNParams
+from deep_ao.models.fnn import FNNLightning, FNNLightningParams
 
 
 class BatchLayer(nn.Module):
@@ -26,7 +26,7 @@ class StoppingNets(pl.LightningModule):
     def __init__(
         self,
         n_steps: int,
-        fnn_params: FNNParams,
+        fnn_params: FNNLightningParams,
         payoff: Callable,
         learning_rate: float = 0.001,
     ) -> None:
@@ -34,7 +34,7 @@ class StoppingNets(pl.LightningModule):
 
         models = nn.ModuleDict()
         for i in range(1, n_steps):  # no decision at 0 and N
-            models[f"model_{i}"] = FNN(fnn_params)
+            models[f"model_{i}"] = FNNLightning(fnn_params)
 
         self.n_steps = n_steps
         self.models = models
@@ -75,7 +75,7 @@ class DeepOptimalStopping(pl.LightningModule):
     def __init__(
         self,
         n_steps: int,
-        fnn_params: FNNParams,
+        fnn_params: FNNLightningParams,
         payoff: Callable,
         learning_rate: float = 0.001,
     ) -> None:
@@ -83,7 +83,7 @@ class DeepOptimalStopping(pl.LightningModule):
 
         models = nn.ModuleDict()
         for i in range(1, n_steps):  # no decision at 0 and N
-            models[f"model_{i}"] = FNN(fnn_params)
+            models[f"model_{i}"] = FNNLightning(fnn_params)
 
         self.n_steps = n_steps
         self.models = models

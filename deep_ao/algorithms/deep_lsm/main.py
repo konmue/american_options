@@ -1,15 +1,15 @@
-from deep_ao.algorithms.deep_lsm.config import (
+from deep_ao.algorithms.deep_lsm.run_deep_lsm import run_deep_lsm
+from deep_ao.config import (
     BATCH_SIZE,
     STRIKE,
     initial_values,
     number_assets,
     number_paths,
-    pre_nn_params,
+    pre_fnnpl_params,
     simulation_params,
     training_schedule_first,
     training_schedule_others,
 )
-from deep_ao.algorithms.deep_lsm.run_deep_lsm import run_deep_lsm
 
 
 def main():
@@ -27,7 +27,7 @@ def main():
                 simulation_params=simulation_params,
                 training_schedule_first=training_schedule_first,
                 training_schedule_others=training_schedule_others,
-                pre_nn_params=pre_nn_params,
+                pre_nn_params=pre_fnnpl_params,
             )
             result_table.append(
                 [n_assets, initial_value, L, U, lower_bound, upper_bound]

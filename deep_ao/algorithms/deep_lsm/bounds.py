@@ -36,7 +36,7 @@ def calculate_lower_bound(
 
 def calculate_payoffs_at_stop(
     paths: np.ndarray,
-    payoff: Callable,
+    payoff_fn: Callable,
     models: dict,
     n_steps: int,
     time: int = 0,
@@ -45,7 +45,7 @@ def calculate_payoffs_at_stop(
 
     path_steps = paths.shape[1] - 1
 
-    payoff_at_stop = payoff(n_steps, paths[:, path_steps])
+    payoff_at_stop = payoff_fn(n_steps, paths[:, path_steps])
 
     time_index = np.arange(start=n_steps - 1, stop=time - 1, step=-1)
     path_index = np.arange(len(time_index))[::-1]
@@ -53,12 +53,12 @@ def calculate_payoffs_at_stop(
     for n, i in zip(time_index, path_index):
 
         x_n = paths[:, i]
-        payoff_now = payoff(n, x_n)
+        payoff_now = payoff_fn(n, x_n)
 
         if n != 0:
             continuation_values = (
                 models[f"model_{n}"](
-                    torch.from_numpy(np.c_[x_n, payoff(n, x_n)]).float()
+                    torch.from_numpy(np.c_[x_n, payoff_fn(n, x_n)]).float()
                 )
                 .squeeze()
                 .detach()
@@ -75,7 +75,7 @@ def calculate_payoffs_at_stop(
 
 def calculate_upper_bound(
     paths: np.ndarray,
-    payoff: Callable,
+    payoff_fn: Callable,
     models: dict,
     path_generator: Callable,
     n_nested_paths: int = 2000,
@@ -89,14 +89,14 @@ def calculate_upper_bound(
     all_continuation_values = np.zeros((n_paths, n_steps + 1))
     all_indicators = np.zeros((n_paths, n_steps + 1))
 
-    all_payoffs[:, -1] = payoff(n_steps, paths[:, n_steps])
+    all_payoffs[:, -1] = payoff_fn(n_steps, paths[:, n_steps])
     all_indicators[:, -1] = 1
     # final cont. value not needed (stays 0)
 
     for n in tqdm(np.arange(start=n_steps - 1, stop=0, step=-1)):
 
         x_n = paths[:, n]
-        current_payoff = payoff(n, x_n)
+        current_payoff = payoff_fn(n, x_n)
         all_payoffs[:, n] = current_payoff
 
         for i in range(n_paths):
@@ -107,13 +107,15 @@ def calculate_upper_bound(
             )
             paths_from_here = paths_from_here[:, 1:]
             continuation_value = calculate_payoffs_at_stop(
-                paths_from_here, payoff, models, n_steps, time=n
+                paths_from_here, payoff_fn, models, n_steps, time=n
             ).mean()
             # check dim here; if cont value includes payoff now; could this be wrong?
             all_continuation_values[i, n] = continuation_value
 
         model_continuation_values = (
-            models[f"model_{n}"](torch.from_numpy(np.c_[x_n, payoff(n, x_n)]).float())
+            models[f"model_{n}"](
+                torch.from_numpy(np.c_[x_n, payoff_fn(n, x_n)]).float()
+            )
             .squeeze()
             .detach()
             .numpy()

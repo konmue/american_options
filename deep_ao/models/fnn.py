@@ -2,35 +2,94 @@ from dataclasses import dataclass
 
 import pytorch_lightning as pl
 import torch
+import torch.nn.functional as F
 from torch import nn
 
 
+class FNN(nn.Module):
+    def __init__(
+        self,
+        input_dim: int,
+        output_dim: int,
+        fc_dims: list,
+        input_scaling: bool,
+        batch_norm: bool,
+        use_xavier_init: bool,
+        activation_function: str,
+        final_activation: bool,
+    ) -> None:
+        super().__init__()
+
+        if activation_function == "relu":
+            act_fn = nn.ReLU()
+        elif activation_function == "tanh":
+            act_fn = nn.Tanh()
+        else:
+            raise NotImplementedError
+
+        layers = []
+        if input_scaling:
+            layers.append(nn.BatchNorm1d(input_dim))
+
+        dims = [input_dim, *fc_dims, output_dim]
+
+        for i, dim in enumerate(dims):
+
+            if i == 0:
+                continue
+
+            if i == len(dims) - 1:
+                layers.append(
+                    nn.Linear(dims[i - 1], dim),
+                )
+                if final_activation:
+                    layers.append(nn.Sigmoid())
+
+            else:
+
+                if batch_norm:
+                    layers.extend(
+                        [
+                            nn.Linear(dims[i - 1], dim),
+                            nn.BatchNorm1d(dim),
+                            act_fn,
+                        ]
+                    )
+                else:
+                    layers.extend([nn.Linear(dims[i - 1], dim), act_fn])
+
+        self.model = nn.Sequential(*layers)
+
+        if use_xavier_init:
+            for layer in self.model:
+                if isinstance(layer, nn.Linear):
+                    nn.init.xavier_normal_(layer.weight)
+
+    def forward(self, x):
+        return self.model(x)
+
+
 @dataclass
-class FNNParams:
+class FNNLightningParams:
     input_dim: int
     output_dim: int
     fc_dims: list
-
-    # dict with number of steps as keys and learning rate to apply this number of steps as keys
     training_schedule: dict
-
     input_scaling: bool
     batch_norm: bool
     use_xavier_init: bool
-    res_net: bool
     activation_function: str
     loss_fn: str
 
 
-class FNN(pl.LightningModule):
-    def __init__(self, params: FNNParams) -> None:
+class FNNLightning(pl.LightningModule):
+    def __init__(self, params: FNNLightningParams) -> None:
         super().__init__()
 
-        self.res_net = params.res_net
         self.training_schedule = params.training_schedule
 
         if params.loss_fn == "mse":
-            self.loss_fn = nn.functional.mse_loss
+            self.loss_fn = F.mse_loss
         else:
             raise NotImplementedError
 
@@ -78,13 +137,7 @@ class FNN(pl.LightningModule):
                     nn.init.xavier_normal_(layer.weight)
 
     def forward(self, x):
-
-        if not self.res_net:
-            return self.model(x)
-
-        # assumes that last argument is the value of the payoff if exercised now
-        payoff_now = x[:, -1].unsqueeze(dim=-1)
-        return payoff_now + self.model(x)
+        return self.model(x)
 
     def training_step(self, batch, batch_idx, optimizer_idx):
         x, y = batch
