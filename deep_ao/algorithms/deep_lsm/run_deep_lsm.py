@@ -14,7 +14,7 @@ from deep_ao.payoffs.bermudan_max_call import bermudan_max_call
 
 
 def run_deep_lsm(
-    strike: int,
+    strike: float,
     n_assets: int,
     initial_value: int,
     batch_size: int,

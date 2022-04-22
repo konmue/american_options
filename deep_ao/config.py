@@ -5,7 +5,7 @@ SEED = 23948
 # number_assets = [5, 10]
 number_assets = [5]
 initial_values = [90, 100, 110]
-# initial_values = [90]
+#initial_values = [90]
 
 
 simulation_params = {
@@ -51,7 +51,8 @@ ACTIVATION_FUNCTION = "relu"
 
 # Params for DOS
 pre_fnn_params = {
-    "fc_dims_pre": fc_dims_pre,
+    "output_dim": 1,
+    "fc_dims": fc_dims_pre,
     "input_scaling": INPUT_SCALING,
     "batch_norm": BATCH_NORM,
     "use_xavier_init": USE_XAVIER_INIT,

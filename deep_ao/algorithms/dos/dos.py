@@ -1,114 +1,94 @@
-from time import daylight
 from typing import Callable
 
 import numpy as np
-import pytorch_lightning as pl
-from torch import nn
+import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 
 from deep_ao.data.geometric_bm import geometric_bm_generator
-from deep_ao.data.utils import prepare_training_data
-from deep_ao.models.batch_net import StoppingNets
-from deep_ao.models.fnn import FNN, FNNParams
-from deep_ao.payoffs.bermudan_max_call import bermudan_max_call_torch
-
-SEED = 1
+from deep_ao.models.fnn import FNN
 
 
-def run(
-    strike: int,
+def train(
+    epochs,
+    epoch_size,
+    batch_size,
+    initial_value: float,
     n_assets: int,
-    initial_value: int,
-    batch_size: int,
-    number_paths: dict,
     simulation_params: dict,
-    fnn_params: FNNParams,
-    learning_rate: float = 0.001,
+    payoff_fn: Callable,
+    fnn_params: dict,
+    learning_rate,
 ):
 
-    np.random.seed(SEED)
+    n_steps = simulation_params["n_steps"]
 
-    paths = geometric_bm_generator(
-        number_paths["n_train"], n_assets, initial_value, **simulation_params
-    )
-    paths = torch.from_numpy(paths).float()
-
-    n_paths = paths.shape[0]
-    n_steps = paths.shape[1] - 1
-
-    def payoff(n, x):
-        return bermudan_max_call_torch(
-            n,
-            x,
-            r=simulation_params["interest_rate"],
-            N=simulation_params["n_steps"],
-            T=simulation_params["delta_t"] * simulation_params["n_steps"],
-            K=strike,
-        )
-
-    models = nn.ModuleDict()
-    optimizers = {}
-    for i in range(1, n_steps):  # no decision at 0 and N
-        model = FNN(fnn_params)
+    models, optimizers = nn.ModuleDict(), {}
+    for i in range(1, n_steps):
+        model = FNN(**fnn_params)
         models[f"model_{i}"] = model
-        optimizers[f"opt_{i}"] = torch.optim.Adam(
-            model.parameters(), learning_rate=learning_rate
-        )
+        optimizers[f"opt_{i}"] = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-    n_paths = paths.shape[0]
-    n_steps = paths.shape[1] - 1
+    with tqdm(range(epochs)) as tepoch:
+        for _ in tepoch:
 
-    stopping_times = torch.ones(n_paths)
-    payoff_at_stop = payoff(n_steps, paths[:, n_steps])
+            paths = geometric_bm_generator(
+                n_simulations=epoch_size,
+                dim=n_assets,
+                initial_value=initial_value,
+                **simulation_params,
+            )
+            paths = torch.from_numpy(paths).float()
+            all_payoffs = torch.empty((paths.shape[0], paths.shape[1], 1))
 
-    for n in np.arange(start=n_steps - 1, stop=0, step=-1):
-
-        print(f"Training at {n}")
-
-        x_n = paths[:, n]
-        payoff_now = payoff(n, x_n)
-        model_input = torch.cat([x_n, payoff_now])
-
-        dataset = TensorDataset(model_input)
-        dataloader = DataLoader(dataset, batch_size=batch_size)
-
-        with tqdm(enumerate(dataloader)) as tepoch:
-            for i, x in tepoch:
-                model = models[f"model_{n}"]
-                optimizer = optimizer[f"opt_{n}"]
-
-                model.train()
-                optimizer.zero_grad()
-
-                stopping_probability = model(x)
-                stop_idx = stopping_probability >= 0.5
-
-                # TODO: first loss or first updating payoff at stop?
-                loss = -(
-                    payoff_now * stopping_probability
-                    + payoff_at_stop * (1 - stopping_probability)
+            # TODO: unsqueeze needed?
+            for n in range(paths.shape[1]):
+                all_payoffs[:, n] = torch.unsqueeze(
+                    payoff_fn(torch.tensor([n]), paths[:, n]), 1
                 )
 
-                loss.backward()
-                optimizer.step()
+            payoff_at_stop = all_payoffs[:, -1]
+            running_loss = 0
+            for n in np.arange(start=n_steps - 1, stop=0, step=-1):
+                model_input = torch.cat((paths[:, n], all_payoffs[:, n]), 1)
 
-                stopping_times[
-                    i * batch_size : (i + 1) * batch_size
-                ] = n * stop_idx + stopping_times[
-                    i * batch_size : (i + 1) * batch_size
-                ] * (
-                    1 - stop_idx
-                )
+                dataset = TensorDataset(model_input)
+                dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
-                payoff_at_stop[
-                    i * batch_size : (i + 1) * batch_size
-                ] = payoff_now * stop_idx + payoff_at_stop[
-                    i * batch_size : (i + 1) * batch_size
-                ] * (
-                    1 - stop_idx
-                )
+                for i, x in enumerate(dataloader):
 
-                tepoch.set_postfix({"loss": loss.item()})
+                    optimizers[f"opt_{n}"].zero_grad()
 
-    return models, payoff_at_stop, stopping_times
+                    # Forward pass
+                    stopping_probability = models[f"model_{n}"](x[0])
+                    stop_idx = (stopping_probability >= 0.5).detach().float()
+
+                    # Updating the payoff at stop
+                    payoff_at_stop[i * batch_size : (i + 1) * batch_size] = all_payoffs[
+                        i * batch_size : min((i + 1) * batch_size, epoch_size), n
+                    ] * stop_idx + payoff_at_stop[
+                        i * batch_size : (i + 1) * batch_size
+                    ] * (
+                        1 - stop_idx
+                    )
+
+                    loss = (
+                        (
+                            payoff_at_stop[i * batch_size : (i + 1) * batch_size]
+                            - all_payoffs[
+                                i * batch_size : min((i + 1) * batch_size, epoch_size),
+                                n,
+                            ]
+                        )
+                        * stopping_probability
+                    ).mean()
+
+                    loss.backward()
+                    optimizers[f"opt_{n}"].step()
+
+                    running_loss += loss.detach().item()
+
+            tepoch.set_postfix({"loss": running_loss / ((i + 1) * (n_steps - 1))})
+
+    return models
