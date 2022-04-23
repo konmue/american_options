@@ -42,7 +42,6 @@ def train(
             paths = torch.from_numpy(paths).float()
             all_payoffs = torch.empty((paths.shape[0], paths.shape[1], 1))
 
-            # TODO: unsqueeze needed?
             for n in range(paths.shape[1]):
                 all_payoffs[:, n] = torch.unsqueeze(
                     payoff_fn(torch.tensor([n]), paths[:, n]), 1
@@ -64,15 +63,6 @@ def train(
                     stopping_probability = models[f"model_{n}"](x[0])
                     stop_idx = (stopping_probability >= 0.5).detach().float()
 
-                    # Updating the payoff at stop
-                    payoff_at_stop[i * batch_size : (i + 1) * batch_size] = all_payoffs[
-                        i * batch_size : min((i + 1) * batch_size, epoch_size), n
-                    ] * stop_idx + payoff_at_stop[
-                        i * batch_size : (i + 1) * batch_size
-                    ] * (
-                        1 - stop_idx
-                    )
-
                     loss = (
                         (
                             payoff_at_stop[i * batch_size : (i + 1) * batch_size]
@@ -86,6 +76,15 @@ def train(
 
                     loss.backward()
                     optimizers[f"opt_{n}"].step()
+
+                    # Updating the payoff at stop
+                    payoff_at_stop[i * batch_size : (i + 1) * batch_size] = all_payoffs[
+                        i * batch_size : min((i + 1) * batch_size, epoch_size), n
+                    ] * stop_idx + payoff_at_stop[
+                        i * batch_size : (i + 1) * batch_size
+                    ] * (
+                        1 - stop_idx
+                    )
 
                     running_loss += loss.detach().item()
 

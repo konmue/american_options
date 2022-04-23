@@ -31,6 +31,7 @@ def main():
                 pre_fnn_params=pre_fnn_params,
                 learning_rate=LEARNING_RATE,
             )
+            print(out)
             result_table.append([n_assets, initial_value, *out])
 
     return result_table
