@@ -5,7 +5,7 @@ SEED = 23948
 # number_assets = [5, 10]
 number_assets = [5]
 initial_values = [90, 100, 110]
-#initial_values = [90]
+# initial_values = [90]
 
 
 simulation_params = {
@@ -19,9 +19,10 @@ simulation_params = {
 STRIKE = 100
 
 ## Number paths & training params
-
-MAX_EPOCHS = 1  # not using the same paths twice
 BATCH_SIZE = 8192
+
+# Params for DLSM
+MAX_EPOCHS = 1  # not using the same paths twice
 STEPS = 600
 
 number_paths = {
@@ -40,6 +41,11 @@ training_schedule_first = {
 training_schedule_others = {
     int(n_steps / 2): lr for n_steps, lr in training_schedule_first.items()
 }
+
+# Params for DOS
+EPOCHS = 300
+EPOCH_SIZE = 1 * BATCH_SIZE
+LEARNING_RATE = 0.001
 
 ## NN Params
 

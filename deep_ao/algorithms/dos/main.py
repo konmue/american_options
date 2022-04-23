@@ -1,17 +1,16 @@
 from deep_ao.algorithms.dos.run import run
 from deep_ao.config import (
     BATCH_SIZE,
+    EPOCH_SIZE,
+    EPOCHS,
+    LEARNING_RATE,
     STRIKE,
     initial_values,
     number_assets,
+    number_paths,
     pre_fnn_params,
     simulation_params,
 )
-
-EPOCHS = 300
-EPOCH_SIZE = 8192
-N_PATHS_LOWER = 1_000_000
-LEARNING_RATE = 0.001
 
 
 def main():
@@ -27,7 +26,7 @@ def main():
                 epochs=EPOCHS,
                 epoch_size=EPOCH_SIZE,
                 batch_size=BATCH_SIZE,
-                n_paths_lower=N_PATHS_LOWER,
+                n_paths_lower=number_paths["n_lower"],
                 simulation_params=simulation_params,
                 pre_fnn_params=pre_fnn_params,
                 learning_rate=LEARNING_RATE,
