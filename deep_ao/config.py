@@ -2,10 +2,8 @@ SEED = 23948
 
 ## Simulation Params
 
-# number_assets = [5, 10]
 number_assets = [5]
-initial_values = [90, 100, 110]
-# initial_values = [90]
+initial_values = [100]
 
 
 simulation_params = {

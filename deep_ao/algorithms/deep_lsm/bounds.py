@@ -100,6 +100,7 @@ def calculate_upper_bound(
         all_payoffs[:, n] = current_payoff
 
         for i in range(n_paths):
+            print(x_n[i].shape)
             paths_from_here = path_generator(
                 initial_value=x_n[i],
                 n_steps=n_steps - n,
@@ -123,6 +124,8 @@ def calculate_upper_bound(
 
         all_indicators[:, n] = current_payoff >= model_continuation_values
 
+    # TODO: indices???
+    # TODO: C0 correct or do I also need again extra loop?
     shifted_continuation_values = np.c_[
         np.ones((n_paths, 1)) * models["model_0"], all_continuation_values[:, 1:-1]
     ]

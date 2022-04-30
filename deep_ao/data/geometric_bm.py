@@ -1,10 +1,12 @@
+from typing import Union
+
 import numpy as np
 
 
 def geometric_bm_generator(
     n_simulations: int,
     dim: int,
-    initial_value: float,
+    initial_value: Union[float, np.ndarray],
     n_steps: int,
     interest_rate: float,
     dividend_yield: float,
