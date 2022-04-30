@@ -58,7 +58,7 @@ def calculate_upper_bound(
     payoff_fn: Callable,
     models: dict,
     path_generator: Callable,
-    n_nested_paths: int = 2000,  # TODO
+    n_nested_paths: int = 16000,  # TODO
     alpha: float = 0.05,
 ):
 

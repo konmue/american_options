@@ -71,7 +71,7 @@ def run(
         return geometric_bm_generator(n_simulations, n_assets, initial_value, **params)
 
     paths_upper = geometric_bm_generator(
-        n_simulations=2000,
+        n_simulations=1024,
         dim=n_assets,
         initial_value=initial_value,
         **simulation_params
