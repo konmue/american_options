@@ -11,21 +11,30 @@ def calculate_payoffs_at_stop(paths, payoff_fn, models, n_steps, time=0):
     payoff_at_stop = payoff_fn(torch.tensor([n_steps]), paths[:, -1])
     stopping_times = torch.ones(paths.shape[0]) * n_steps
 
-    time_index = np.arange(start=n_steps - 1, stop=time - 1, step=-1)
+    time_index = np.arange(start=n_steps, stop=time - 1, step=-1)
     path_index = np.arange(len(time_index))[::-1]
 
+    assert len(time_index) == len(path_index)
+
     for n, i in zip(time_index, path_index):
+
+        # Always stop at final step; already accounted for in initialization
+        if n == n_steps:
+            continue
+
         x_n = paths[:, i]
         payoff_now = payoff_fn(torch.tensor([n]), x_n)
+
+        # Always or never stop at beginning (see remark 6)
         if n == 0:
             stopping_probability = payoff_now >= payoff_at_stop
-            if time == 0:
-                print(stopping_probability.float().mean())
+
         else:
             model_input = torch.cat([x_n, torch.unsqueeze(payoff_now, 1)], dim=-1)
             model = models[f"model_{n}"]
             model.eval()
             stopping_probability = model(model_input)
+
         stop_idx = (stopping_probability >= 0.5).float().squeeze()
         payoff_at_stop = payoff_now * stop_idx + payoff_at_stop * (1 - stop_idx)
         stopping_times = stop_idx * n + (1 - stop_idx) * stopping_times
@@ -87,7 +96,7 @@ def calculate_upper_bound(
             )
             paths_from_here = torch.from_numpy(paths_from_here[:, 1:]).float()
             payoffs_at_stop, _ = calculate_payoffs_at_stop(
-                paths_from_here, payoff_fn, models, n_steps, time=n
+                paths_from_here, payoff_fn, models, n_steps, time=n + 1
             )
             continuation_value = payoffs_at_stop.mean()
             all_continuation_values[:, n] = continuation_value
@@ -102,7 +111,7 @@ def calculate_upper_bound(
                 )
                 paths_from_here = torch.from_numpy(paths_from_here[:, 1:]).float()
                 payoffs_at_stop, _ = calculate_payoffs_at_stop(
-                    paths_from_here, payoff_fn, models, n_steps, time=n
+                    paths_from_here, payoff_fn, models, n_steps, time=n + 1
                 )
 
                 continuation_value = payoffs_at_stop.mean()
