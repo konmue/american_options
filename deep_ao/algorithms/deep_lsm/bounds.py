@@ -100,7 +100,6 @@ def calculate_upper_bound(
         all_payoffs[:, n] = current_payoff
 
         for i in range(n_paths):
-            print(x_n[i].shape)
             paths_from_here = path_generator(
                 initial_value=x_n[i],
                 n_steps=n_steps - n,

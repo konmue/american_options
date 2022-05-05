@@ -41,7 +41,7 @@ training_schedule_others = {
 }
 
 # Params for DOS
-EPOCHS = 300
+EPOCHS = 1000
 EPOCH_SIZE = 1 * BATCH_SIZE
 LEARNING_RATE = 0.001
 
