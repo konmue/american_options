@@ -18,6 +18,8 @@ def run(
     initial_value: int,
     number_paths: dict,
     simulation_params: dict,
+    with_upper_bound: bool = True,
+    use_payoff=True,
 ):
 
     paths_train = geometric_bm_generator(
@@ -34,14 +36,14 @@ def run(
             K=strike,
         )
 
-    models, payoff_at_stop = train(paths_train, payoff_fn)
+    models, payoff_at_stop = train(paths_train, payoff_fn, use_payoff)
     biased_price = payoff_at_stop.mean()
 
     paths_lower = geometric_bm_generator(
         number_paths["n_lower"], n_assets, initial_value, **simulation_params
     )
 
-    L, _ = calculate_lower_bound(paths_lower, payoff_fn, models)
+    L, _ = calculate_lower_bound(paths_lower, payoff_fn, models, use_payoff)
 
     def path_generator(
         initial_value: float,
@@ -53,9 +55,12 @@ def run(
 
         return geometric_bm_generator(n_simulations, n_assets, initial_value, **params)
 
-    paths_upper = geometric_bm_generator(
-        number_paths["n_upper"], n_assets, initial_value, **simulation_params
-    )
-    U = calculate_upper_bound(paths_upper, payoff_fn, path_generator, models)
+    if with_upper_bound:
+        paths_upper = geometric_bm_generator(
+            number_paths["n_upper"], n_assets, initial_value, **simulation_params
+        )
+        U = calculate_upper_bound(paths_upper, payoff_fn, path_generator, models)
 
-    return L, biased_price, U
+        return L, biased_price, U
+    else:
+        return L, biased_price, np.nan

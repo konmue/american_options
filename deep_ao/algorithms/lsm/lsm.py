@@ -4,8 +4,10 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from tqdm import tqdm
 
+ITM_ONLY = True
 
-def get_features(x, payoff):
+
+def get_features(x, payoff, use_payoff=True):
 
     sorted = np.sort(x, axis=-1)
     poly = np.polynomial.hermite.hermval(sorted[:, -1], np.ones(5))
@@ -15,12 +17,56 @@ def get_features(x, payoff):
         cross_products[:, i] = sorted[:, i] * sorted[:, i + 1]
     prod = np.prod(x, axis=-1)
 
-    return np.c_[poly, sorted[:, :-1], squares, cross_products, prod, payoff]
+    if use_payoff:
+        return np.c_[poly, sorted[:, :-1], squares, cross_products, prod, payoff]
+    else:
+        return np.c_[poly, sorted[:, :-1], squares, cross_products, prod]
 
+
+def __train(
+    paths: np.ndarray,
+    payoff_fn: Callable,
+    use_payoff=True,
+):
+    """The LSM algorithm with neural networks as in Section 2 of the paper."""
+
+    n_steps = paths.shape[1] - 1
+    models = {}
+
+    payoff_at_stop = payoff_fn(n_steps, paths[:, -1])
+
+    time_index = np.arange(start=n_steps, stop=0, step=-1)
+    for n in time_index:
+
+        # paths at point n
+        x_n = paths[:, n]
+        payoff_now = payoff_fn(n, x_n)
+
+        if ITM_ONLY:
+            which = payoff_now > 0
+        else:
+            which = payoff_now < np.infty
+
+        features = get_features(x_n[which], payoff_now[which], use_payoff)
+        model = LinearRegression()
+        model.fit(features, payoff_at_stop[which])
+        continuation_values = model.predict(features)
+
+        # saving the model
+        models[f"model_{n}"] = model
+
+        # updating optimal stopping time if stopping is larger than the approximated continuation value
+        idx = payoff_now[which] >= continuation_values
+        payoff_at_stop[which][idx] = payoff_now[which][idx]
+
+    models["model_0"] = payoff_at_stop.mean()
+
+    return models, payoff_at_stop
 
 def train(
     paths: np.ndarray,
     payoff_fn: Callable,
+    arg
 ):
     """The LSM algorithm with neural networks as in Section 2 of the paper."""
 
@@ -56,14 +102,63 @@ def train(
     return models, payoff_at_stop
 
 
+def _train(
+    paths: np.ndarray,
+    foo: Callable,
+    use_payoff=True,
+):
+    """The LSM algorithm with neural networks as in Section 2 of the paper."""
+
+    n_steps = paths.shape[1] - 1
+    models = {}
+
+    def payoff_fn(x):
+        return np.maximum(np.amax(x, axis=-1) - 100.0, 0)
+
+    df = np.exp(-0.05 * 0.1)
+
+    payoff_at_stop = payoff_fn(paths[:, -1])
+
+    time_index = np.arange(start=n_steps, stop=0, step=-1)
+    for n in time_index:
+
+        # paths at point n
+        x_n = paths[:, n]
+        payoff_now = payoff_fn(x_n)
+
+        if ITM_ONLY:
+            which = payoff_now > 0
+        else:
+            which = payoff_now < np.infty
+
+        features = get_features(x_n[which], payoff_now[which], use_payoff)
+        model = LinearRegression()
+        model.fit(features, payoff_at_stop[which] * df)
+        continuation_values = model.predict(features)
+
+        # saving the model
+        models[f"model_{n}"] = model
+
+        # updating optimal stopping time if stopping is larger than the approximated continuation value
+        idx = payoff_now[which] >= continuation_values
+        payoff_at_stop[which][idx] = payoff_now[which][idx]
+        payoff_at_stop[~which] *= df
+        payoff_at_stop[which][~idx] *= df
+
+    models["model_0"] = payoff_at_stop.mean() * df
+
+    return models, payoff_at_stop
+
+
 def calculate_lower_bound(
     paths: np.ndarray,
     payoff_fn: Callable,
     models: dict,
+    use_payoff=True,
     alpha: float = 0.05,  # confidence level for CI
 ):
 
-    payoffs_at_stop = calculate_payoffs_at_stop(paths, payoff_fn, models)
+    payoffs_at_stop = calculate_payoffs_at_stop(paths, payoff_fn, models, use_payoff)
     L = payoffs_at_stop.mean()
     sigma_estimate = payoffs_at_stop.std()
 
@@ -73,7 +168,45 @@ def calculate_lower_bound(
     )
 
 
-def calculate_payoffs_at_stop(
+def _calculate_payoffs_at_stop(
+    paths: np.ndarray,
+    payoff_fn: Callable,
+    models: dict,
+    n_steps=None,
+    time: int = 0,
+    use_payoff=True,
+):
+
+    if n_steps is None:
+        n_steps = paths.shape[1] - 1
+
+    def payoff_fn(x):
+        return np.maximum(np.amax(x, axis=-1) - 100.0, 0)
+
+    df = np.exp(-0.05 / 3)
+    payoff_at_stop = payoff_fn(paths[:, -1])
+
+    time_index = np.arange(start=n_steps - 1, stop=time - 1, step=-1)
+    path_index = np.arange(len(time_index))[::-1]
+
+    for n, i in zip(time_index, path_index):
+
+        x_n = paths[:, i]
+        payoff_now = payoff_fn(x_n)
+
+        if n != 0:
+            features = get_features(x_n, payoff_now, use_payoff)
+            continuation_values = models[f"model_{n}"].predict(features)
+        else:
+            continuation_values = models[f"model_{n}"]
+        stop_idx = payoff_now >= continuation_values
+        payoff_at_stop[stop_idx] = payoff_now[stop_idx]
+        payoff_at_stop[~stop_idx] *= df
+
+    return payoff_at_stop
+
+
+def __calculate_payoffs_at_stop(
     paths: np.ndarray,
     payoff_fn: Callable,
     models: dict,
@@ -96,6 +229,39 @@ def calculate_payoffs_at_stop(
 
         if n != 0:
             features = get_features(x_n, payoff_now)
+            continuation_values = models[f"model_{n}"].predict(features)
+        else:
+            continuation_values = models[f"model_{n}"]
+        stop_idx = payoff_now >= continuation_values
+        payoff_at_stop[stop_idx] = payoff_now[stop_idx]
+
+    return
+
+
+def calculate_payoffs_at_stop(
+    paths: np.ndarray,
+    payoff_fn: Callable,
+    models: dict,
+    n_steps=None,
+    time: int = 0,
+    use_payoff=True,
+):
+
+    if n_steps is None:
+        n_steps = paths.shape[1] - 1
+
+    payoff_at_stop = payoff_fn(n_steps, paths[:, -1])
+
+    time_index = np.arange(start=n_steps - 1, stop=time - 1, step=-1)
+    path_index = np.arange(len(time_index))[::-1]
+
+    for n, i in zip(time_index, path_index):
+
+        x_n = paths[:, i]
+        payoff_now = payoff_fn(n, x_n)
+
+        if n != 0:
+            features = get_features(x_n, payoff_now, use_payoff)
             continuation_values = models[f"model_{n}"].predict(features)
         else:
             continuation_values = models[f"model_{n}"]
