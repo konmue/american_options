@@ -103,14 +103,14 @@ def calculate_upper_bound(
 
         if n == 0:
             paths_from_here = path_generator(
-                initial_values=x_n[0], n_steps=n_steps - n, n_simulations=n_nested_paths
+                initial_value=x_n[0], n_steps=n_steps - n, n_simulations=n_nested_paths
             )
             paths_from_here = paths_from_here[:, 1:]
             continuation_value = calculate_payoffs_at_stop(
                 paths_from_here, payoff_fn, models, n_steps, time=n + 1
             ).mean()
             all_continuation_values[:, n] = continuation_value
-            all_indicators = payoff_now[0] >= models["model_0"]
+            all_indicators[:, n] = payoff_now[0] >= models["model_0"]
 
         else:
             for i in range(n_paths):

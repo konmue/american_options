@@ -3,7 +3,7 @@ import itertools
 
 import pandas as pd
 
-from deep_ao.algorithms.deep_lsm.run_deep_lsm import run
+from deep_ao.algorithms.deep_lsm.run import run
 from deep_ao.config import (
     ACTIVATION_FUNCTION,
     BATCH_NORM,
@@ -26,7 +26,6 @@ number_paths = {
     "n_upper": 2000,
     "n_lower": 5_000_000,
 }
-# number_paths["n_lower"] = 100_000
 
 pre_fnnpl_params = {
     "fc_dims_pre": fc_dims_pre,
