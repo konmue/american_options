@@ -26,6 +26,11 @@ number_paths = {
     "n_upper": 2000,
     "n_lower": 5_000_000,
 }
+number_paths = {
+    "n_train": 100,
+    "n_upper": 10,
+    "n_lower": 100,
+}
 
 pre_fnnpl_params = {
     "fc_dims_pre": fc_dims_pre,
