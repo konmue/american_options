@@ -4,9 +4,11 @@ import numpy as np
 import pandas as pd
 from tqdm import trange
 
-from deep_ao.algorithms.lsm.features import RandomNNFeatures, ls_features, raw_features
+from deep_ao.algorithms.lsm.features import (RandomNNFeatures, ls_features,
+                                             raw_features)
 from deep_ao.algorithms.lsm.run import run
-from deep_ao.config import STRIKE, initial_values, number_assets, simulation_params
+from deep_ao.config import (STRIKE, initial_values, number_assets,
+                            simulation_params)
 
 number_paths = {
     "n_train": 20000,
@@ -14,7 +16,7 @@ number_paths = {
     "n_lower": 20000,
 }
 
-feature_keys = ["raw", "random_nn_features", "ls", "ls_no_payoff"]
+feature_keys = ["base", "ls", "r-NN"]
 
 
 def main():
@@ -26,10 +28,9 @@ def main():
     for n_assets, initial_value, feature_key in combinations:
 
         feature_dict = {
-            "raw": [raw_features, 0],
-            "random_nn_features": [RandomNNFeatures(input_dim=n_assets + 1), 1.0],
+            "base": [raw_features, 0],
             "ls": [ls_features, 0],
-            "ls_no_payoff": [lambda x, y: ls_features(x, y, include_payoff=False), 0],
+            "r-NN": [RandomNNFeatures(input_dim=n_assets + 1), 1.0],
         }
         print(
             f"training model for d = {n_assets}, s0 = {initial_value}, feature key = {feature_key}"
@@ -63,11 +64,10 @@ def main():
         )
 
     results = pd.DataFrame(results)
-
-    print(results)
-
+    results.columns = ["Features", "d", "S_0", "Price", "s.e."]
     return results
 
 
 if __name__ == "__main__":
-    _ = main()
+    res = main()
+    print(res)
