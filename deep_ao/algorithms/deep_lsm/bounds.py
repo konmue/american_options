@@ -83,6 +83,7 @@ def calculate_upper_bound(
     payoff_fn: Callable,
     models: dict,
     path_generator: Callable,
+    L,
     n_nested_paths: int = 2000,
     alpha: float = 0.05,
 ):
@@ -105,13 +106,14 @@ def calculate_upper_bound(
         all_payoffs[:, n] = payoff_now
 
         if n == 0:
-            paths_from_here = path_generator(
-                initial_value=x_n[0], n_steps=n_steps - n, n_simulations=n_nested_paths
-            )
-            paths_from_here = paths_from_here[:, 1:]
-            continuation_value = calculate_payoffs_at_stop(
-                paths_from_here, payoff_fn, models, n_steps, time=n
-            ).mean()
+            #paths_from_here = path_generator(
+            #    initial_value=x_n[0], n_steps=n_steps - n, n_simulations=n_nested_paths
+            #)
+            #paths_from_here = paths_from_here[:, 1:]
+            #continuation_value = calculate_payoffs_at_stop(
+            #    paths_from_here, payoff_fn, models, n_steps, time=n
+            #).mean()
+            continuation_value = L
             all_continuation_values[:, n] = continuation_value
             all_indicators[:, n] = payoff_now[0] >= models["model_0"]
 

@@ -14,8 +14,6 @@ def calculate_payoffs_at_stop(paths, payoff_fn, models, n_steps, time=0):
     time_index = np.arange(start=n_steps, stop=time - 1, step=-1)
     path_index = np.arange(len(time_index))[::-1]
 
-    assert len(time_index) == len(path_index)
-
     for n, i in zip(time_index, path_index):
 
         # Always stop at final step; already accounted for in initialization
@@ -100,7 +98,7 @@ def calculate_upper_bound(
             )
             continuation_value = payoffs_at_stop.mean()
             all_continuation_values[:, n] = continuation_value
-            stop_idx = payoff_now[0] >= continuation_value  # TODO: Is this correct?
+            stop_idx = payoff_now[0] >= continuation_value  #  See Remark 6
 
         else:
             for i in range(n_paths):

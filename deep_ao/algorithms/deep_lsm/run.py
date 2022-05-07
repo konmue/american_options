@@ -92,7 +92,7 @@ def run(
 
         return geometric_bm_generator(n_simulations, n_assets, initial_value, **params)
 
-    U, ci_upper = calculate_upper_bound(paths_upper, payoff_fn, models, path_generator)
+    U, ci_upper = calculate_upper_bound(paths_upper, payoff_fn, models, path_generator, L=L)
 
     summary = L, ci_lower, U, ci_upper
     print(summary)
