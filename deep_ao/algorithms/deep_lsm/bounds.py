@@ -106,13 +106,13 @@ def calculate_upper_bound(
         all_payoffs[:, n] = payoff_now
 
         if n == 0:
-            #paths_from_here = path_generator(
+            # paths_from_here = path_generator(
             #    initial_value=x_n[0], n_steps=n_steps - n, n_simulations=n_nested_paths
-            #)
-            #paths_from_here = paths_from_here[:, 1:]
-            #continuation_value = calculate_payoffs_at_stop(
+            # )
+            # paths_from_here = paths_from_here[:, 1:]
+            # continuation_value = calculate_payoffs_at_stop(
             #    paths_from_here, payoff_fn, models, n_steps, time=n
-            #).mean()
+            # ).mean()
             continuation_value = L
             all_continuation_values[:, n] = continuation_value
             all_indicators[:, n] = payoff_now[0] >= models["model_0"]
@@ -140,8 +140,8 @@ def calculate_upper_bound(
             )
             all_indicators[:, n] = payoff_now >= model_continuation_values
 
-        del paths_from_here
-        gc.collect()
+            del paths_from_here
+            gc.collect()
 
     martingale_increments = (
         all_payoffs[:, 1:] * all_indicators[:, 1:]
