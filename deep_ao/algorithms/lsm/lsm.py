@@ -1,82 +1,63 @@
 from typing import Callable
 
 import numpy as np
-from sklearn.linear_model import LinearRegression
-from tqdm import tqdm
-
-
-def get_features(x, payoff):
-
-    sorted = np.sort(x, axis=-1)
-    poly = np.polynomial.hermite.hermval(sorted[:, -1], np.ones(5))
-    squares = sorted[:, :-1] ** 2
-    cross_products = np.empty((x.shape[0], x.shape[1] - 2))
-    for i in range(x.shape[1] - 2):
-        cross_products[:, i] = sorted[:, i] * sorted[:, i + 1]
-    prod = np.prod(x, axis=-1)
-
-    return np.c_[poly, sorted[:, :-1], squares, cross_products, prod, payoff]
+from sklearn.linear_model import LinearRegression, Ridge
 
 
 def train(
     paths: np.ndarray,
     payoff_fn: Callable,
+    feature_map: Callable,
+    ridge_coeff: float = 0.0,
+    itm_only=True,
 ):
-    """The LSM algorithm with neural networks as in Section 2 of the paper."""
 
     n_steps = paths.shape[1] - 1
     models = {}
 
-    # stopping times s initialized to last period
-    # stopping_times = (np.ones(n_paths) * n_steps).astype(int)
-
     payoff_at_stop = payoff_fn(n_steps, paths[:, -1])
 
-    time_index = np.arange(start=n_steps, stop=-1, step=-1)
+    time_index = np.arange(start=n_steps, stop=0, step=-1)
     for n in time_index:
 
         # paths at point n
         x_n = paths[:, n]
         payoff_now = payoff_fn(n, x_n)
 
-        features = get_features(x_n, payoff_now)
-        model = LinearRegression()
-        model.fit(features, payoff_at_stop)
+        if itm_only:
+            which = payoff_now > 0
+        else:
+            which = payoff_now < np.inf
+
+        features = feature_map(x_n[which], payoff_now[which])
+
+        if ridge_coeff > 0:
+            model = Ridge(ridge_coeff)
+        else:
+            model = LinearRegression()
+
+        model.fit(features, payoff_at_stop[which])
         continuation_values = model.predict(features)
 
         # saving the model
         models[f"model_{n}"] = model
 
         # updating optimal stopping time if stopping is larger than the approximated continuation value
-        idx = payoff_now >= continuation_values
-        payoff_at_stop[idx] = payoff_now[idx]
+        idx = payoff_now[which] >= continuation_values
+        payoff_at_stop[which] = (
+            idx * payoff_now[which] + (1 - idx) * payoff_at_stop[which]
+        )
 
     models["model_0"] = payoff_at_stop.mean()
 
     return models, payoff_at_stop
 
 
-def calculate_lower_bound(
-    paths: np.ndarray,
-    payoff_fn: Callable,
-    models: dict,
-    alpha: float = 0.05,  # confidence level for CI
-):
-
-    payoffs_at_stop = calculate_payoffs_at_stop(paths, payoff_fn, models)
-    L = payoffs_at_stop.mean()
-    sigma_estimate = payoffs_at_stop.std()
-
-    return (
-        L,
-        sigma_estimate,
-    )
-
-
 def calculate_payoffs_at_stop(
     paths: np.ndarray,
     payoff_fn: Callable,
     models: dict,
+    feature_map: Callable,
     n_steps=None,
     time: int = 0,
 ):
@@ -95,7 +76,7 @@ def calculate_payoffs_at_stop(
         payoff_now = payoff_fn(n, x_n)
 
         if n != 0:
-            features = get_features(x_n, payoff_now)
+            features = feature_map(x_n, payoff_now)
             continuation_values = models[f"model_{n}"].predict(features)
         else:
             continuation_values = models[f"model_{n}"]
@@ -105,14 +86,36 @@ def calculate_payoffs_at_stop(
     return payoff_at_stop
 
 
+def calculate_lower_bound(
+    paths: np.ndarray,
+    payoff_fn: Callable,
+    models: dict,
+    feature_map: Callable,
+    alpha: float = 0.05,  # confidence level for CI
+):
+
+    payoffs_at_stop = calculate_payoffs_at_stop(
+        paths, payoff_fn, models, feature_map=feature_map
+    )
+    L = payoffs_at_stop.mean()
+    sigma_estimate = payoffs_at_stop.std()
+
+    return (
+        L,
+        sigma_estimate,
+    )
+
+
 def calculate_upper_bound(
     paths: np.ndarray,
     payoff_fn: Callable,
     path_generator: Callable,
     models: dict,
+    feature_key: str = "ls",
     n_nested_paths: int = 2000,
 ):
 
+    feature_map = FEATURES[feature_key]
     n_paths = paths.shape[0]
     n_steps = paths.shape[1] - 1
 
@@ -129,7 +132,7 @@ def calculate_upper_bound(
         x_n = paths[:, n]
         current_payoff = payoff_fn(n, x_n)
         all_payoffs[:, n] = current_payoff
-        features = get_features(x_n, current_payoff)
+        features = feature_map(x_n, current_payoff)
 
         for i in range(n_paths):
             paths_from_here = path_generator(
@@ -138,10 +141,16 @@ def calculate_upper_bound(
                 n_simulations=n_nested_paths,
             )
             paths_from_here = paths_from_here[:, 1:]
+
             continuation_value = calculate_payoffs_at_stop(
-                paths_from_here, payoff_fn, models, n_steps, time=n
+                paths_from_here,
+                payoff_fn,
+                models,
+                n_steps,
+                time=n,
+                feature_key=feature_key,
             ).mean()
-            # check dim here; if cont value includes payoff now; could this be wrong?
+
             all_continuation_values[i, n] = continuation_value
 
         model_continuation_values = models[f"model_{n}"].predict(features)

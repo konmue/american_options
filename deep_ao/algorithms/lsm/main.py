@@ -1,9 +1,12 @@
+import itertools
+
 import numpy as np
+import pandas as pd
 from tqdm import trange
 
+from deep_ao.algorithms.lsm.features import RandomNNFeatures, ls_features, raw_features
 from deep_ao.algorithms.lsm.run import run
-from deep_ao.config import (STRIKE, initial_values, number_assets,
-                            simulation_params)
+from deep_ao.config import STRIKE, initial_values, number_assets, simulation_params
 
 number_paths = {
     "n_train": 20000,
@@ -11,33 +14,60 @@ number_paths = {
     "n_lower": 20000,
 }
 
+feature_keys = ["raw", "random_nn_features", "ls", "ls_no_payoff"]
+
 
 def main():
 
-    np.random.seed(0)
+    np.random.seed(1)
 
-    result_table = []
-    for n_assets in number_assets:
-        for initial_value in initial_values:
-            print(f"training model for d = {n_assets}, s0 = {initial_value}")
+    combinations = itertools.product(number_assets, initial_values, feature_keys)
+    results = []
+    for n_assets, initial_value, feature_key in combinations:
 
-            l = []
-            for _ in trange(1):
-                out = run(
-                    strike=STRIKE,
-                    n_assets=n_assets,
-                    initial_value=initial_value,
-                    number_paths=number_paths,
-                    simulation_params=simulation_params,
-                )
-                l.append(out)
+        feature_dict = {
+            "raw": [raw_features, 0],
+            "random_nn_features": [RandomNNFeatures(input_dim=n_assets + 1), 1.0],
+            "ls": [ls_features, 0],
+            "ls_no_payoff": [lambda x, y: ls_features(x, y, include_payoff=False), 0],
+        }
+        print(
+            f"training model for d = {n_assets}, s0 = {initial_value}, feature key = {feature_key}"
+        )
 
-            l = np.array(l)
-            result_table.append(l.mean(0))
+        feature_map, ridge_coeff = feature_dict[feature_key]
 
-    return result_table
+        prices = []
+        for _ in trange(10):
+            out = run(
+                strike=STRIKE,
+                n_assets=n_assets,
+                initial_value=initial_value,
+                number_paths=number_paths,
+                simulation_params=simulation_params,
+                feature_map=feature_map,
+                ridge_coeff=ridge_coeff,
+                upper_bound=False,
+            )
+            prices.append(out)
+        prices = np.array(prices)
+
+        results.append(
+            [
+                feature_key,
+                n_assets,
+                initial_value,
+                np.mean(prices, 0),
+                np.std(prices, axis=0, ddof=1) / np.sqrt(prices.shape[0]),
+            ]
+        )
+
+    results = pd.DataFrame(results)
+
+    print(results)
+
+    return results
 
 
 if __name__ == "__main__":
-    results = main()
-    print(results)
+    _ = main()
