@@ -17,6 +17,7 @@ def run(
     feature_map: Callable,
     ridge_coeff: float = 0.0,
     upper_bound: bool = False,
+    itm_only: bool = True,
 ):
 
     paths_train = geometric_bm_generator(
@@ -38,7 +39,11 @@ def run(
         )
 
     models, payoff_at_stop = train(
-        paths_train, payoff_fn, feature_map=feature_map, ridge_coeff=ridge_coeff
+        paths_train,
+        payoff_fn,
+        feature_map=feature_map,
+        ridge_coeff=ridge_coeff,
+        itm_only=itm_only,
     )
     price = payoff_at_stop.mean()
 

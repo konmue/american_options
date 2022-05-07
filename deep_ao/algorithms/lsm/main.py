@@ -14,6 +14,12 @@ number_paths = {
     "n_lower": 20000,
 }
 
+number_paths_upper = {
+    "n_train": 50000,
+    "n_upper": 2000,
+    "n_lower": 20000,
+}
+
 feature_keys = ["base", "ls", "r-NN"]
 
 
@@ -56,11 +62,12 @@ def main():
             strike=STRIKE,
             n_assets=n_assets,
             initial_value=initial_value,
-            number_paths=number_paths,
+            number_paths=number_paths_upper,
             simulation_params=simulation_params,
             feature_map=feature_map,
             ridge_coeff=ridge_coeff,
             upper_bound=True,
+            itm_only=False,
         )
 
         results.append(
