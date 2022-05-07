@@ -47,7 +47,7 @@ training_schedule_others = {
 }
 
 
-def main():
+def main(number_assets=number_assets):
 
     seed_everything(0)
     combinations = itertools.product(number_assets, initial_values)
