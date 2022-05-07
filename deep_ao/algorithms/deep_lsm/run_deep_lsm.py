@@ -1,30 +1,28 @@
 import gc
 
-import numpy as np
-
 from deep_ao.algorithms.deep_lsm.bounds import (
     calculate_lower_bound,
     calculate_upper_bound,
 )
 from deep_ao.algorithms.deep_lsm.deep_lsm import train
-from deep_ao.config import SEED
 from deep_ao.data.geometric_bm import geometric_bm_generator
 from deep_ao.models.fnn import FNNLightningParams, get_dims
 from deep_ao.payoffs.bermudan_max_call import bermudan_max_call
 
 
-def run_deep_lsm(
+def run(
     strike: float,
     n_assets: int,
-    initial_value: int,
+    initial_value: float,
     batch_size: int,
     number_paths: dict,
     simulation_params: dict,
     training_schedule_first: dict,
     training_schedule_others: dict,
     pre_nn_params: dict,
+    upper_bound: bool = False,
 ):
-    np.random.seed(SEED)
+
     input_dim, fc_dims = get_dims(n_assets, pre_nn_params["fc_dims_pre"])
 
     paths_train = geometric_bm_generator(
@@ -60,8 +58,8 @@ def run_deep_lsm(
         batch_size, paths_train, fnn_params_first, fnn_params_others, payoff_fn
     )
 
-    # del paths_train  # free up memory
-    # gc.collect()
+    del paths_train  # free up memory
+    gc.collect()
 
     for name, model in models.items():
         if name[-1] == "0":
@@ -72,10 +70,14 @@ def run_deep_lsm(
     paths_lower = geometric_bm_generator(
         number_paths["n_lower"], n_assets, initial_value, **simulation_params
     )
-    L, sigma_L, lower_bound = calculate_lower_bound(paths_lower, payoff_fn, models)
+    L, sigma_L, ci_lower = calculate_lower_bound(paths_lower, payoff_fn, models)
 
-    # del paths_lower
-    # gc.collect()
+    del paths_lower
+    gc.collect()
+
+    if not upper_bound:
+        print(L)
+        return L, sigma_L, ci_lower
 
     paths_upper = geometric_bm_generator(
         number_paths["n_upper"], n_assets, initial_value, **simulation_params
@@ -91,15 +93,11 @@ def run_deep_lsm(
 
         return geometric_bm_generator(n_simulations, n_assets, initial_value, **params)
 
-    U, sigma_U, upper_bound = calculate_upper_bound(
+    U, sigma_U, ci_upper = calculate_upper_bound(
         paths_upper, payoff_fn, models, path_generator
     )
 
-    # del paths_upper
-    # del models
-    # gc.collect()
-
-    summary = L, sigma_L, lower_bound, U, sigma_U, upper_bound
+    summary = L, sigma_L, ci_lower, U, sigma_U, ci_upper
     print(summary)
 
     return summary

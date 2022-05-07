@@ -1,4 +1,3 @@
-SEED = 23948
 
 ## Simulation Params
 
@@ -29,17 +28,6 @@ number_paths = {
     "n_lower": 5_000_000,
 }
 
-# Training schedules for Deep LSM; distinguish between first and other networks
-training_schedule_first = {
-    int(STEPS * 0.1): 0.1,
-    int(STEPS * 0.2): 0.01,
-    int(STEPS * 0.3): 0.001,
-    int(STEPS * 0.5): 0.0001,
-}
-training_schedule_others = {
-    int(n_steps / 2): lr for n_steps, lr in training_schedule_first.items()
-}
-
 # Params for DOS
 EPOCHS = 1000
 EPOCH_SIZE = 1 * BATCH_SIZE
@@ -62,14 +50,4 @@ pre_fnn_params = {
     "use_xavier_init": USE_XAVIER_INIT,
     "activation_function": ACTIVATION_FUNCTION,
     "final_activation": True,
-}
-
-# Params for DLSM
-pre_fnnpl_params = {
-    "fc_dims_pre": fc_dims_pre,
-    "input_scaling": INPUT_SCALING,
-    "batch_norm": BATCH_NORM,
-    "use_xavier_init": USE_XAVIER_INIT,
-    "activation_function": ACTIVATION_FUNCTION,
-    "loss_fn": "mse",
 }
