@@ -46,11 +46,11 @@ def calculate_payoffs_at_stop(
 
     payoff_at_stop = payoff_fn(n_steps, paths[:, path_steps])
 
-    time_index = np.arange(start=n_steps - 1, stop=time - 1, step=-1)
-    path_index = np.arange(len(time_index))[::-1]
-
-    # time_index = np.arange(start=n_steps, stop=time - 1, step=-1)
+    # time_index = np.arange(start=n_steps - 1, stop=time - 1, step=-1)
     # path_index = np.arange(len(time_index))[::-1]
+
+    time_index = np.arange(start=n_steps, stop=time - 1, step=-1)
+    path_index = np.arange(len(time_index))[::-1]
 
     for n, i in zip(time_index, path_index):
 
@@ -126,7 +126,7 @@ def calculate_upper_bound(
                 )
                 paths_from_here = paths_from_here[:, 1:]
                 continuation_value = calculate_payoffs_at_stop(
-                    paths_from_here, payoff_fn, models, n_steps, time=n
+                    paths_from_here, payoff_fn, models, n_steps, time=n + 1
                 ).mean()
                 all_continuation_values[i, n] = continuation_value
 
