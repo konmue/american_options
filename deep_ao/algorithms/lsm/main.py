@@ -4,11 +4,9 @@ import numpy as np
 import pandas as pd
 from tqdm import trange
 
-from deep_ao.algorithms.lsm.features import (RandomNNFeatures, ls_features,
-                                             raw_features)
+from deep_ao.algorithms.lsm.features import RandomNNFeatures, ls_features, raw_features
 from deep_ao.algorithms.lsm.run import run
-from deep_ao.config import (STRIKE, initial_values, number_assets,
-                            simulation_params)
+from deep_ao.config import STRIKE, initial_values, number_assets, simulation_params
 
 number_paths = {
     "n_train": 20000,
@@ -53,6 +51,18 @@ def main():
             prices.append(out)
         prices = np.array(prices)
 
+        # Run upper bound calculation only once as it is computationally expensive
+        _, U = run(
+            strike=STRIKE,
+            n_assets=n_assets,
+            initial_value=initial_value,
+            number_paths=number_paths,
+            simulation_params=simulation_params,
+            feature_map=feature_map,
+            ridge_coeff=ridge_coeff,
+            upper_bound=True,
+        )
+
         results.append(
             [
                 feature_key,
@@ -60,11 +70,12 @@ def main():
                 initial_value,
                 np.mean(prices, 0),
                 np.std(prices, axis=0, ddof=1) / np.sqrt(prices.shape[0]),
+                U,
             ]
         )
 
     results = pd.DataFrame(results)
-    results.columns = ["Features", "d", "S_0", "Price", "s.e."]
+    results.columns = ["Features", "d", "S_0", "Price", "s.e.", "U"]
     return results
 
 

@@ -1,8 +1,9 @@
 from typing import Callable
 
-import numpy as np
+from numba import njit
 
-from deep_ao.algorithms.lsm.lsm import calculate_upper_bound, train
+from deep_ao.algorithms.lsm.bounds import calculate_upper_bound
+from deep_ao.algorithms.lsm.lsm import train
 from deep_ao.data.geometric_bm import geometric_bm_generator
 from deep_ao.payoffs.bermudan_max_call import bermudan_max_call
 
@@ -22,13 +23,17 @@ def run(
         number_paths["n_train"], n_assets, initial_value, **simulation_params
     )
 
+    interest_rate = simulation_params["interest_rate"]
+    n_steps = simulation_params["n_steps"]
+    maturity = simulation_params["delta_t"] * simulation_params["n_steps"]
+
     def payoff_fn(n, x):
         return bermudan_max_call(
             n,
             x,
-            r=simulation_params["interest_rate"],
-            N=simulation_params["n_steps"],
-            T=simulation_params["delta_t"] * simulation_params["n_steps"],
+            r=interest_rate,
+            N=n_steps,
+            T=maturity,
             K=strike,
         )
 
@@ -53,6 +58,8 @@ def run(
     paths_upper = geometric_bm_generator(
         number_paths["n_upper"], n_assets, initial_value, **simulation_params
     )
-    U = calculate_upper_bound(paths_upper, payoff_fn, path_generator, models)
+    U = calculate_upper_bound(
+        paths_upper, payoff_fn, path_generator, models, feature_map
+    )
 
     return price, U
