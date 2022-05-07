@@ -100,7 +100,7 @@ def calculate_upper_bound(
             )
             continuation_value = payoffs_at_stop.mean()
             all_continuation_values[:, n] = continuation_value
-            stop_idx = payoff_now[0] >= continuation_value
+            stop_idx = payoff_now[0] >= continuation_value  # TODO: Is this correct?
 
         else:
             for i in range(n_paths):

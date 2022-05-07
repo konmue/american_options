@@ -22,6 +22,8 @@ number_paths_upper = {
 
 feature_keys = ["base", "ls", "r-NN"]
 
+number_assets = [5]
+
 
 def main():
 

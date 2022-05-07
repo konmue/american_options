@@ -46,10 +46,13 @@ def calculate_payoffs_at_stop(
 
     payoff_at_stop = payoff_fn(n_steps, paths[:, path_steps])
 
-    time_index = np.arange(start=n_steps - 1, stop=time - 1, step=-1)
+    time_index = np.arange(start=n_steps, stop=time - 1, step=-1)
     path_index = np.arange(len(time_index))[::-1]
 
     for n, i in zip(time_index, path_index):
+
+        if n == n_steps:
+            continue
 
         x_n = paths[:, i]
         payoff_now = payoff_fn(n, x_n)
@@ -92,47 +95,54 @@ def calculate_upper_bound(
     all_indicators[:, -1] = 1
     # final cont. value not needed (stays 0)
 
-    for n in tqdm(np.arange(start=n_steps - 1, stop=0, step=-1)):
+    for n in tqdm(np.arange(start=n_steps - 1, stop=-1, step=-1)):
 
         x_n = paths[:, n]
-        current_payoff = payoff_fn(n, x_n)
-        all_payoffs[:, n] = current_payoff
+        payoff_now = payoff_fn(n, x_n)
+        all_payoffs[:, n] = payoff_now
 
-        for i in range(n_paths):
+        if n == 0:
             paths_from_here = path_generator(
-                initial_value=x_n[i],
-                n_steps=n_steps - n,
-                n_simulations=n_nested_paths,
+                initial_values=x_n[0], n_steps=n_steps - n, n_simulations=n_nested_paths
             )
             paths_from_here = paths_from_here[:, 1:]
             continuation_value = calculate_payoffs_at_stop(
-                paths_from_here, payoff_fn, models, n_steps, time=n
+                paths_from_here, payoff_fn, models, n_steps, time=n + 1
             ).mean()
-            # check dim here; if cont value includes payoff now; could this be wrong?
-            all_continuation_values[i, n] = continuation_value
+            all_continuation_values[:, n] = continuation_value
+            all_indicators = payoff_now[0] >= models["model_0"]
 
-        model_continuation_values = (
-            models[f"model_{n}"](
-                torch.from_numpy(np.c_[x_n, payoff_fn(n, x_n)]).float()
+        else:
+            for i in range(n_paths):
+                paths_from_here = path_generator(
+                    initial_value=x_n[i],
+                    n_steps=n_steps - n,
+                    n_simulations=n_nested_paths,
+                )
+                paths_from_here = paths_from_here[:, 1:]
+                continuation_value = calculate_payoffs_at_stop(
+                    paths_from_here, payoff_fn, models, n_steps, time=n + 1
+                ).mean()
+                # check dim here; if cont value includes payoff now; could this be wrong?
+                all_continuation_values[i, n] = continuation_value
+
+            model_continuation_values = (
+                models[f"model_{n}"](
+                    torch.from_numpy(np.c_[x_n, payoff_fn(n, x_n)]).float()
+                )
+                .squeeze()
+                .detach()
+                .numpy()
             )
-            .squeeze()
-            .detach()
-            .numpy()
-        )
-
-        all_indicators[:, n] = current_payoff >= model_continuation_values
+            all_indicators[:, n] = payoff_now >= model_continuation_values
 
         del paths_from_here
         gc.collect()
 
-    shifted_continuation_values = np.c_[
-        np.ones((n_paths, 1)) * models["model_0"], all_continuation_values[:, 1:-1]
-    ]
-
     martingale_increments = (
         all_payoffs[:, 1:] * all_indicators[:, 1:]
         + (1 - all_indicators[:, 1:]) * all_continuation_values[:, 1:]
-        - shifted_continuation_values
+        - all_continuation_values[:, :-1]
     )
 
     martingale = np.c_[
