@@ -3,6 +3,7 @@ from typing import Callable
 
 import numpy as np
 import torch
+from scipy.stats import norm
 from torch import nn
 from tqdm import tqdm
 
@@ -48,17 +49,27 @@ def calculate_lower_bound(
     alpha: float = 0.05,  # confidence level for CI
 ):
 
+    n_paths = paths.shape[0]
+
     payoffs_at_stop, stopping_times = calculate_payoffs_at_stop(
         paths,
         payoff_fn,
         models,
         n_steps=paths.shape[1] - 1,
     )
-    lower_bound = payoffs_at_stop.mean()
+    L = payoffs_at_stop.mean()
     sigma_estimate = payoffs_at_stop.std()
-    mean_stopping_time = stopping_times.mean()
 
-    return (lower_bound, sigma_estimate, mean_stopping_time)
+    return (
+        L,
+        confidence_interval_endpoint(
+            upper_endpoint=False,
+            bound_estimate=L,
+            sigma_estimate=sigma_estimate,
+            n_paths=n_paths,
+            alpha=alpha,
+        ),
+    )
 
 
 def calculate_upper_bound(
@@ -67,7 +78,7 @@ def calculate_upper_bound(
     models: dict,
     path_generator: Callable,
     L: float,
-    n_nested_paths: int = 16000,  # TODO
+    n_nested_paths: int = 16000,
     alpha: float = 0.05,
 ):
 
@@ -140,5 +151,24 @@ def calculate_upper_bound(
 
     return (
         U,
-        sigma_estimate,
+        confidence_interval_endpoint(
+            upper_endpoint=True,
+            bound_estimate=U,
+            sigma_estimate=sigma_estimate,
+            n_paths=n_paths,
+            alpha=alpha,
+        ),
+    )
+
+
+def confidence_interval_endpoint(
+    upper_endpoint: bool,
+    bound_estimate: float,
+    sigma_estimate: float,
+    n_paths: int,
+    alpha: float = 0.05,
+):
+    sign = 1 if upper_endpoint else -1
+    return bound_estimate + sign * norm.ppf(1 - (alpha / 2)) * sigma_estimate / (
+        n_paths**0.5
     )

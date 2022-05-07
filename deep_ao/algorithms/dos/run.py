@@ -19,6 +19,7 @@ def run(
     simulation_params: dict,
     pre_fnn_params: dict,
     learning_rate: float,
+    upper_bound: bool = True,
 ):
 
     fnn_params = pre_fnn_params
@@ -56,9 +57,10 @@ def run(
     )
     paths_lower = torch.from_numpy(paths_lower).float()
 
-    (lower_bound, sigma_estimate, mean_stopping_time) = calculate_lower_bound(
-        paths_lower, payoff_fn, models
-    )
+    L, ci_lower = calculate_lower_bound(paths_lower, payoff_fn, models)
+
+    if not upper_bound:
+        return L, ci_lower
 
     def path_generator(
         initial_value: float,
@@ -78,8 +80,8 @@ def run(
     )
     paths_upper = torch.from_numpy(paths_upper).float()
 
-    (U, _sigma_estimate) = calculate_upper_bound(
-        paths_upper, payoff_fn, models, path_generator
+    U, ci_upper = calculate_upper_bound(
+        paths_upper, payoff_fn, models, path_generator, L=L
     )
 
-    return [lower_bound, sigma_estimate, mean_stopping_time, U, _sigma_estimate]
+    return L, ci_lower, U, ci_upper
