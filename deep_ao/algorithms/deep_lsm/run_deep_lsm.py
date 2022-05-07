@@ -70,14 +70,13 @@ def run(
     paths_lower = geometric_bm_generator(
         number_paths["n_lower"], n_assets, initial_value, **simulation_params
     )
-    L, sigma_L, ci_lower = calculate_lower_bound(paths_lower, payoff_fn, models)
+    L, ci_lower = calculate_lower_bound(paths_lower, payoff_fn, models)
 
     del paths_lower
     gc.collect()
 
     if not upper_bound:
-        print(L)
-        return L, sigma_L, ci_lower
+        return L, ci_lower
 
     paths_upper = geometric_bm_generator(
         number_paths["n_upper"], n_assets, initial_value, **simulation_params
@@ -93,11 +92,9 @@ def run(
 
         return geometric_bm_generator(n_simulations, n_assets, initial_value, **params)
 
-    U, sigma_U, ci_upper = calculate_upper_bound(
-        paths_upper, payoff_fn, models, path_generator
-    )
+    U, ci_upper = calculate_upper_bound(paths_upper, payoff_fn, models, path_generator)
 
-    summary = L, sigma_L, ci_lower, U, sigma_U, ci_upper
+    summary = L, ci_lower, U, ci_upper
     print(summary)
 
     return summary

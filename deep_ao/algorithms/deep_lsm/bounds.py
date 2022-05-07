@@ -23,7 +23,6 @@ def calculate_lower_bound(
 
     return (
         L,
-        sigma_estimate,
         confidence_interval_endpoint(
             upper_endpoint=False,
             bound_estimate=L,
@@ -143,7 +142,6 @@ def calculate_upper_bound(
 
     return (
         U,
-        sigma_estimate,
         confidence_interval_endpoint(
             upper_endpoint=True,
             bound_estimate=U,

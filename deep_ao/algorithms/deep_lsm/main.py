@@ -1,4 +1,7 @@
+import gc
 import itertools
+
+import pandas as pd
 
 from deep_ao.algorithms.deep_lsm.run_deep_lsm import run
 from deep_ao.config import (
@@ -44,17 +47,12 @@ training_schedule_others = {
     int(n_steps / 2): lr for n_steps, lr in training_schedule_first.items()
 }
 
-number_assets = [5]
-initial_values = [100.0]
-
-SEED = 0
-
 
 def main():
 
-    seed_everything(SEED)
+    seed_everything(0)
     combinations = itertools.product(number_assets, initial_values)
-    result_table = []
+    results = []
     for n_assets, initial_value in combinations:
         print(f"training model for d = {n_assets}, s0 = {initial_value}")
         out = run(
@@ -67,13 +65,17 @@ def main():
             training_schedule_first=training_schedule_first,
             training_schedule_others=training_schedule_others,
             pre_nn_params=pre_fnnpl_params,
-            upper_bound=False,
+            upper_bound=True,
         )
-        result_table.append([n_assets, initial_value, *out])
+        gc.collect()
+        results.append([n_assets, initial_value, *out])
 
-    return result_table
+    results = pd.DataFrame(results)
+    results.columns = ["d", "S_0", "L", "ci_lower", "U", "ci_upper"]
+
+    return results
 
 
 if __name__ == "__main__":
-    results = main()
-    print(results)
+    res = main()
+    print(res)

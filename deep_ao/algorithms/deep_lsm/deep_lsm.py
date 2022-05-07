@@ -40,7 +40,7 @@ def train(
         model_input = torch.tensor(np.c_[x_n, payoff_now]).float()
         targets = torch.unsqueeze(torch.tensor(payoff_at_stop).float(), 1)
         dataset = TensorDataset(model_input, targets)
-        dataloader = DataLoader(dataset, batch_size=batch_size, num_workers=4)
+        dataloader = DataLoader(dataset, batch_size=batch_size, num_workers=2)
 
         # defining the models; copying weights from previous model
         if n == n_steps - 1:
