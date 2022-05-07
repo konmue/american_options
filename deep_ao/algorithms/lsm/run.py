@@ -64,7 +64,7 @@ def run(
         number_paths["n_upper"], n_assets, initial_value, **simulation_params
     )
     U = calculate_upper_bound(
-        paths_upper, payoff_fn, path_generator, models, feature_map
+        paths_upper, payoff_fn, path_generator, models, feature_map, L=price
     )
 
     return price, U

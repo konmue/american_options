@@ -17,10 +17,13 @@ def calculate_payoffs_at_stop(
 
     payoff_at_stop = payoff_fn(n_steps, paths[:, -1])
 
-    time_index = np.arange(start=n_steps - 1, stop=time - 1, step=-1)
+    time_index = np.arange(start=n_steps, stop=time - 1, step=-1)
     path_index = np.arange(len(time_index))[::-1]
 
     for n, i in zip(time_index, path_index):
+
+        if n == n_steps:
+            continue
 
         x_n = paths[:, i]
         payoff_now = payoff_fn(n, x_n)
@@ -61,6 +64,7 @@ def calculate_upper_bound(
     path_generator: Callable,
     models: dict,
     feature_map: Callable,
+    L: float,
     n_nested_paths: int = 2000,
 ):
 
@@ -74,45 +78,45 @@ def calculate_upper_bound(
     all_payoffs[:, -1] = payoff_fn(n_steps, paths[:, n_steps])
     all_indicators[:, -1] = 1
 
-    time_index = np.arange(start=n_steps - 1, stop=0, step=-1)
+    time_index = np.arange(start=n_steps - 1, stop=-1, step=-1)
     for n in time_index:
 
         x_n = paths[:, n]
-        current_payoff = payoff_fn(n, x_n)
-        all_payoffs[:, n] = current_payoff
-        features = feature_map(x_n, current_payoff)
+        payoff_now = payoff_fn(n, x_n)
+        all_payoffs[:, n] = payoff_now
 
-        for i in range(n_paths):
-            paths_from_here = path_generator(
-                initial_value=x_n[i],
-                n_steps=n_steps - n,
-                n_simulations=n_nested_paths,
-            )
-            paths_from_here = paths_from_here[:, 1:]
+        if n == 0:
+            all_continuation_values[:, n] = L
+            all_indicators[:, n] = payoff_now[0] >= models["model_0"]
 
-            continuation_value = calculate_payoffs_at_stop(
-                paths_from_here,
-                payoff_fn,
-                models,
-                feature_map=feature_map,
-                n_steps=n_steps,
-                time=n,
-            ).mean()
+        else:
+            for i in range(n_paths):
+                paths_from_here = path_generator(
+                    initial_value=x_n[i],
+                    n_steps=n_steps - n,
+                    n_simulations=n_nested_paths,
+                )
+                paths_from_here = paths_from_here[:, 1:]
 
-            all_continuation_values[i, n] = continuation_value
+                continuation_value = calculate_payoffs_at_stop(
+                    paths_from_here,
+                    payoff_fn,
+                    models,
+                    feature_map=feature_map,
+                    n_steps=n_steps,
+                    time=n,
+                ).mean()
 
-        model_continuation_values = models[f"model_{n}"].predict(features)
+                all_continuation_values[i, n] = continuation_value
 
-        all_indicators[:, n] = current_payoff >= model_continuation_values
-
-    shifted_continuation_values = np.c_[
-        np.ones((n_paths, 1)) * models["model_0"], all_continuation_values[:, 1:-1]
-    ]
+            features = feature_map(x_n, payoff_now)
+            model_continuation_values = models[f"model_{n}"].predict(features)
+            all_indicators[:, n] = payoff_now >= model_continuation_values
 
     martingale_increments = (
         all_payoffs[:, 1:] * all_indicators[:, 1:]
         + (1 - all_indicators[:, 1:]) * all_continuation_values[:, 1:]
-        - shifted_continuation_values
+        - all_continuation_values[:, :-1]
     )
 
     martingale = np.c_[

@@ -1,3 +1,4 @@
+import gc
 from typing import Callable
 
 import numpy as np
@@ -65,6 +66,7 @@ def calculate_upper_bound(
     payoff_fn: Callable,
     models: dict,
     path_generator: Callable,
+    L: float,
     n_nested_paths: int = 16000,  # TODO
     alpha: float = 0.05,
 ):
@@ -87,18 +89,9 @@ def calculate_upper_bound(
         all_payoffs[:, n] = payoff_now
 
         if n == 0:
-            paths_from_here = path_generator(
-                initial_value=x_n[0].numpy(),
-                n_steps=n_steps - n,
-                n_simulations=n_nested_paths,
-            )
-            paths_from_here = torch.from_numpy(paths_from_here[:, 1:]).float()
-            payoffs_at_stop, _ = calculate_payoffs_at_stop(
-                paths_from_here, payoff_fn, models, n_steps, time=n + 1
-            )
-            continuation_value = payoffs_at_stop.mean()
-            all_continuation_values[:, n] = continuation_value
-            stop_idx = payoff_now[0] >= continuation_value  #  See Remark 6
+            # using the lower bound approximation for approximating  the first cont. value
+            all_continuation_values[:, n] = L
+            stop_idx = payoff_now[0] >= L  #  See Remark 6
 
         else:
             for i in range(n_paths):
@@ -127,6 +120,9 @@ def calculate_upper_bound(
             ).squeeze()
 
         all_indicators[:, n] = stop_idx
+
+        del paths_from_here
+        gc.collect()
 
     martingale_increments = (
         all_payoffs[:, 1:] * all_indicators[:, 1:]

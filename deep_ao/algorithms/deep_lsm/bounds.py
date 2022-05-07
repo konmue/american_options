@@ -46,9 +46,6 @@ def calculate_payoffs_at_stop(
 
     payoff_at_stop = payoff_fn(n_steps, paths[:, path_steps])
 
-    # time_index = np.arange(start=n_steps - 1, stop=time - 1, step=-1)
-    # path_index = np.arange(len(time_index))[::-1]
-
     time_index = np.arange(start=n_steps, stop=time - 1, step=-1)
     path_index = np.arange(len(time_index))[::-1]
 
@@ -83,7 +80,7 @@ def calculate_upper_bound(
     payoff_fn: Callable,
     models: dict,
     path_generator: Callable,
-    L,
+    L: float,
     n_nested_paths: int = 2000,
     alpha: float = 0.05,
 ):
@@ -106,15 +103,8 @@ def calculate_upper_bound(
         all_payoffs[:, n] = payoff_now
 
         if n == 0:
-            # paths_from_here = path_generator(
-            #    initial_value=x_n[0], n_steps=n_steps - n, n_simulations=n_nested_paths
-            # )
-            # paths_from_here = paths_from_here[:, 1:]
-            # continuation_value = calculate_payoffs_at_stop(
-            #    paths_from_here, payoff_fn, models, n_steps, time=n
-            # ).mean()
-            continuation_value = L
-            all_continuation_values[:, n] = continuation_value
+            # using the lower bound approximation for approximating  the first cont. value
+            all_continuation_values[:, n] = L
             all_indicators[:, n] = payoff_now[0] >= models["model_0"]
 
         else:
