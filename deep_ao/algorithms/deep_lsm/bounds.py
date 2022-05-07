@@ -122,6 +122,9 @@ def calculate_upper_bound(
 
         all_indicators[:, n] = current_payoff >= model_continuation_values
 
+        del paths_from_here
+        gc.collect()
+
     shifted_continuation_values = np.c_[
         np.ones((n_paths, 1)) * models["model_0"], all_continuation_values[:, 1:-1]
     ]
