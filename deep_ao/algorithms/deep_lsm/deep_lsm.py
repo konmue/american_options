@@ -19,6 +19,13 @@ def train(
 ):
     """The LSM algorithm with neural networks as in Section 2 of the paper."""
 
+    if torch.cuda.is_available():
+        accelerator = "gpu"
+        devices = 1
+    else:
+        accelerator = "cpu"
+        devices = None
+
     n_steps = paths.shape[1] - 1
     models = {}
 
@@ -43,7 +50,12 @@ def train(
             model = FNNLightning(fnn_params_others)
             model.load_state_dict(state_dict)
 
-        trainer = pl.Trainer(max_epochs=MAX_EPOCHS, enable_model_summary=False)
+        trainer = pl.Trainer(
+            max_epochs=MAX_EPOCHS,
+            enable_model_summary=False,
+            accelerator=accelerator,
+            devices=devices,
+        )
         trainer.fit(model, dataloader)
 
         continuation_values = (
