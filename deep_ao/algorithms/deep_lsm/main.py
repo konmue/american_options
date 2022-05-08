@@ -52,6 +52,8 @@ def main(number_assets=number_assets):
     combinations = itertools.product(number_assets, initial_values)
     results = []
     for n_assets, initial_value in combinations:
+        if n_assets == 10:
+            STEPS = 400
         print(f"training model for d = {n_assets}, s0 = {initial_value}")
         out = run(
             strike=STRIKE,
