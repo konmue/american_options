@@ -41,6 +41,7 @@ def main():
             upper_bound=True,
         )
         gc.collect()
+        print(out)
         results.append([n_assets, initial_value, *out])
 
     results = pd.DataFrame(results)
