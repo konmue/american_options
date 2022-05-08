@@ -84,4 +84,4 @@ def run(
         paths_upper, payoff_fn, models, path_generator, L=L
     )
 
-    return L, ci_lower, U, ci_upper
+    return L, U, (L + U) / 2, ci_lower, ci_upper

@@ -1,6 +1,7 @@
 from typing import Callable
 
 import numpy as np
+from scipy.stats import norm
 
 
 def calculate_payoffs_at_stop(
@@ -44,6 +45,7 @@ def calculate_lower_bound(
     payoff_fn: Callable,
     models: dict,
     feature_map: Callable,
+    alpha: float = 0.05,  # confidence level for CI
 ):
 
     payoffs_at_stop = calculate_payoffs_at_stop(
@@ -54,7 +56,13 @@ def calculate_lower_bound(
 
     return (
         L,
-        sigma_estimate,
+        confidence_interval_endpoint(
+            upper_endpoint=False,
+            bound_estimate=L,
+            sigma_estimate=sigma_estimate,
+            n_paths=paths.shape[0],
+            alpha=alpha,
+        ),
     )
 
 
@@ -66,6 +74,7 @@ def calculate_upper_bound(
     feature_map: Callable,
     L: float,
     n_nested_paths: int = 2000,
+    alpha: float = 0.05,
 ):
 
     n_paths = paths.shape[0]
@@ -125,5 +134,28 @@ def calculate_upper_bound(
 
     U_realizations = np.amax(all_payoffs - martingale, -1)
     U = U_realizations.mean()
+    sigma_estimate = U_realizations.std()
 
-    return U
+    return (
+        U,
+        confidence_interval_endpoint(
+            upper_endpoint=True,
+            bound_estimate=U,
+            sigma_estimate=sigma_estimate,
+            n_paths=n_paths,
+            alpha=alpha,
+        ),
+    )
+
+
+def confidence_interval_endpoint(
+    upper_endpoint: bool,
+    bound_estimate: float,
+    sigma_estimate: float,
+    n_paths: int,
+    alpha: float = 0.05,
+):
+    sign = 1 if upper_endpoint else -1
+    return bound_estimate + sign * norm.ppf(1 - (alpha / 2)) * sigma_estimate / (
+        n_paths**0.5
+    )

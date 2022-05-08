@@ -37,5 +37,3 @@ class RandomNNFeatures:
     def __call__(self, x, payoff):
         out = nn_features(x, payoff, self.weight_matrix_1, self.bias_1)
         return out
-
-

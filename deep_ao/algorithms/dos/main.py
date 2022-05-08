@@ -43,7 +43,7 @@ def main():
         results.append([n_assets, initial_value, *out])
 
     results = pd.DataFrame(results)
-    results.columns = ["d", "S_0", "L", "ci_lower", "U", "ci_upper"]
+    results.columns = ["d", "S_0", "L", "U", "Point Est.", "ci_lower", "ci_upper"]
     return results
 
 

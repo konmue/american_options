@@ -2,7 +2,7 @@ from typing import Callable
 
 from numba import njit
 
-from deep_ao.algorithms.lsm.bounds import calculate_upper_bound
+from deep_ao.algorithms.lsm.bounds import calculate_lower_bound, calculate_upper_bound
 from deep_ao.algorithms.lsm.lsm import train
 from deep_ao.data.geometric_bm import geometric_bm_generator
 from deep_ao.payoffs.bermudan_max_call import bermudan_max_call
@@ -50,6 +50,14 @@ def run(
     if not upper_bound:
         return price
 
+    paths_lower = geometric_bm_generator(
+        n_simulations=number_paths["n_lower"],
+        dim=n_assets,
+        initial_value=initial_value,
+        **simulation_params
+    )
+    L, ci_lower = calculate_lower_bound(paths_lower, payoff_fn, models, feature_map)
+
     def path_generator(
         initial_value: float,
         n_steps: int,
@@ -63,8 +71,8 @@ def run(
     paths_upper = geometric_bm_generator(
         number_paths["n_upper"], n_assets, initial_value, **simulation_params
     )
-    U = calculate_upper_bound(
-        paths_upper, payoff_fn, path_generator, models, feature_map, L=price
+    U, ci_upper = calculate_upper_bound(
+        paths_upper, payoff_fn, path_generator, models, feature_map, L=L
     )
 
-    return price, U
+    return (L, U, (L + U) / 2, ci_lower, ci_upper)

@@ -58,7 +58,7 @@ def main():
         prices = np.array(prices)
 
         # Run upper bound calculation only once as it is computationally expensive
-        _, U = run(
+        out = run(
             strike=STRIKE,
             n_assets=n_assets,
             initial_value=initial_value,
@@ -77,12 +77,23 @@ def main():
                 initial_value,
                 np.mean(prices, 0),
                 np.std(prices, axis=0, ddof=1) / np.sqrt(prices.shape[0]),
-                U,
+                *out,
             ]
         )
 
     results = pd.DataFrame(results)
-    results.columns = ["Features", "d", "S_0", "Price", "s.e.", "U"]
+    results.columns = [
+        "Features",
+        "d",
+        "S_0",
+        "Price",
+        "s.e.",
+        "L",
+        "U",
+        "Point Est.",
+        "ci_lower",
+        "ci_upper",
+    ]
     return results
 
 

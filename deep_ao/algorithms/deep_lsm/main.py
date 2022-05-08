@@ -19,7 +19,6 @@ from deep_ao.config import (
 from deep_ao.data.utils import seed_everything
 
 STEPS = 600
-# STEPS = 6
 
 number_paths = {
     "n_train": BATCH_SIZE * STEPS,
@@ -70,7 +69,7 @@ def main(number_assets=number_assets):
         results.append([n_assets, initial_value, *out])
 
     results = pd.DataFrame(results)
-    results.columns = ["d", "S_0", "L", "ci_lower", "U", "ci_upper"]
+    results.columns = ["d", "S_0", "L", "U", "Point Est.", "ci_lower", "ci_upper"]
 
     return results
 
