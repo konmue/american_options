@@ -57,8 +57,8 @@ def calculate_lower_bound(
         models,
         n_steps=paths.shape[1] - 1,
     )
-    L = payoffs_at_stop.mean()
-    sigma_estimate = payoffs_at_stop.std()
+    L = payoffs_at_stop.mean().item()
+    sigma_estimate = payoffs_at_stop.std().item()
 
     return (
         L,
@@ -78,7 +78,7 @@ def calculate_upper_bound(
     models: dict,
     path_generator: Callable,
     L: float,
-    n_nested_paths: int = 16000,
+    n_nested_paths: int = 1000,
     alpha: float = 0.05,
 ):
 

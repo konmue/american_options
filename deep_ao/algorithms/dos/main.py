@@ -7,7 +7,6 @@ from deep_ao.algorithms.dos.run import run
 from deep_ao.config import (
     BATCH_SIZE,
     EPOCH_SIZE,
-    EPOCHS,
     LEARNING_RATE,
     STRIKE,
     initial_values,
@@ -17,6 +16,8 @@ from deep_ao.config import (
     simulation_params,
 )
 from deep_ao.data.utils import seed_everything
+
+EPOCHS = 3000
 
 
 def main():
