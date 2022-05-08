@@ -53,7 +53,8 @@ def main(number_assets=number_assets):
     results = []
     for n_assets, initial_value in combinations:
         if n_assets == 10:
-            STEPS = 400
+            number_paths["n_train"] = 400 * BATCH_SIZE
+            number_paths["n_lower"] = 2_000_000
         print(f"training model for d = {n_assets}, s0 = {initial_value}")
         out = run(
             strike=STRIKE,
