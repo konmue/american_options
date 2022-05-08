@@ -130,10 +130,10 @@ def calculate_upper_bound(
                 .float()
             ).squeeze()
 
-        all_indicators[:, n] = stop_idx
+            del paths_from_here
+            gc.collect()
 
-        del paths_from_here
-        gc.collect()
+        all_indicators[:, n] = stop_idx
 
     martingale_increments = (
         all_payoffs[:, 1:] * all_indicators[:, 1:]
