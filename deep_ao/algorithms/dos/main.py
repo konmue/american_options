@@ -17,7 +17,7 @@ from deep_ao.config import (
 )
 from deep_ao.data.utils import seed_everything
 
-EPOCHS = 3000
+EPOCHS = 1500
 
 
 def main():
