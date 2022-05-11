@@ -132,3 +132,5 @@ dmypy.json
 .vscode
 
 _test.ipynb
+
+aqf_report.pdf
