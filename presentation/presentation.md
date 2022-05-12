@@ -14,45 +14,90 @@ Sabina Georgescu, Konrad Müller
 
 # Overview
 
-1. Introduction to American Options
+1. Introduction to Bermudan Options
 2. Least-Squares Monte Carlo
 3. Deep LSM
 4. Deep Optimal Stopping
-5. Results
+5. Dual LSM
+6. Results
 
 ---
 
-# 1. Introduction to American Options
+# 1. Introduction to Bermudan Options
 
 ---
 
-# European, Bermudan, and American Options
+# Context
 
-* European Option: Can be exercised at a **single** date
-* Bermudan Option: Can be exercised at **several** dates
-* American Option: Can be exercised at **any** point in time before expiration
+* European Option: Exercisbale on a **single** date
+* Bermudan Option: Exercisable on **several** dates
+* American Option: Exercisable on **any** date before expiration
+
+$\therefore\quad$ Bermudan contracts lie between European & American.
 
 ---
 
-# Bermudan Max-Call
+# Bermudan Max-Call Option
 
-* **Bermudan**: finite number of exercise dates $0 = t_0, t_1, ..., t_N = T$
-* **Max-Call**: Payoff at time $t_n$ given by the maximum payoff of call options on $d$ assets:
+* Call Option on the maximum of $d$ underlying assets $S^{1,...,d}$
+* Finitely many exercise dates $0 = t_0 < t_1 < ...< t_N = T$
+* Discounted payoff at exercise time $t_n$:
 
-$$\max_{i = 1, ..., d} \left(S_{t_n}^i - K\right)^+$$
+$$ G_{t_n} =e^{-r t_n}\max_{i = 1, ..., d} \left(S_{t_n}^i - K\right)^+ $$
 
 
 ---
 # Pricing & Dynamics
 
-* To price a Bermudan Max-Call must make assumption about the risk-neutral dynamics of the $d$ underlying assets
-* Simple choice: $d$ uncorrelated exponential Brownian motions's with identical parameters, i.e., $\forall i=1,..., d$
+* Multi-dimensional Black-Scholes model under risk-neutral dynamics
 
+* $d$-dimensional Brownian Motion $W$ with uncorrelated instantaneous components:
 
 $$    dS^i_t = S_0^i \exp{\left(\left[r - \delta - \frac{\sigma^2}{2}\right]dt + \sigma dW^i_t\right)}$$
 
+* Pricing formula with $\sup$ attained at $\tau_n$:
+
+$$ V_{t_n} = \sup_{\tau\in\{t_n,...,t_N\}} \mathbb{E}[G_\tau \mid \mathcal{F}_{t_n} ] $$
+
 ---
 # 2. Least-Squares Monte Carlo
+
+**Longstaff \& Schwartz** (2001), *Valuing American Options by Simulation: A Simple Least-Squares Approach*
+
+Estimate **continuation values** by regressing simulated discounted cash flows onto basis functions $L_0,...,L_B$ of ITM paths:
+
+$$ F(\omega; t_n) \approx \sum_{i=0}^B w^*_i \cdot L_i(X(\omega; t_n)) \quad\text{for}\quad \textbf{w}^* = \min_{w\in\mathbb{R}^{B+1}} || \textbf{Y}_{t_n} - B(t_n)\cdot\textbf{w}||_{L_2}  $$
+
+where the discounted cash flows vector and basis functions matrix are given by:
+$$\textbf{Y}_{t_n} = \left[Y(\omega_0; t_n),...,Y(\omega_m; t_n)\right]^T$$
+$$ \textbf{B}_m(t_n) = \left[L_0(X(\omega_m;t_n)),...,L_B(X(\omega_m;t_n))\right]^T, \forall m\in\{1,...,M\}$$
+
+---
+**Optimal Stopping Strategy** via **Snell Envelope**, work backwards in time:
+
+$$
+ V_{t_n} =
+ \begin{dcases}
+ G_T \quad\text{if } n=N\\
+ \max \{G_{t_n}, F_{t_n}\} \quad\text{if } n<N
+ \end{dcases}
+$$
+
+**Dynamic Programming Equation**:
+ $$
+ \tau_n =
+ \begin{dcases}
+ t_n \quad\text{if } G_{t_n} \ge F_{t_n}\\
+ \tau_{n+1} \quad\text{if } G_{t_n} < F_{t_n}
+ \end{dcases}
+$$
+
+Apply to each path $\omega_{1,...,M}$ to obtain Bermudan option valuation:
+$$ V_{LSM} := \sum_{i=1}^{m}V_{t_0}(\omega)$$
+
+
+
+
 ---
 
 # Recursive Formulation (Dynamic Programming Principle) / Continuation Values / ... SABINA
@@ -149,7 +194,7 @@ $$    \tau_{n+1} = \sum_{m=n+1}^{N} \left[m \cdot f^{\theta_m}(X_m) \cdot \prod_
 $$    r^k_n(\theta) = g(n,x^k_n)\cdot F^\theta(x^k_n) + g(l^k_{n+1},x^k_{l^k_{n+1}})\cdot (1-F^\theta(x^k_n))$$
 
 ---
-# 5. Results
+# 6. Results
 
 ---
 
