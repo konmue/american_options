@@ -88,7 +88,7 @@ def lsm(paths):
 
     payoff_at_stop = payoff_fn(N, paths[:, -1])
 
-    for n in np.arange(start=n_steps, stop=0, step=-1):
+    for n in np.arange(start=N, stop=0, step=-1):
 
         x_n = paths[:, n]
         payoff_now = payoff_fn(n, x_n)
