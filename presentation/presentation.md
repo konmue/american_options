@@ -62,7 +62,7 @@ $$ V_{t_n} = \sup_{\tau\in\{t_n,...,t_N\}} \mathbb{E}[G_\tau \mid \mathcal{F}_{t
 ---
 # 2. Least-Squares Monte Carlo
 
-**Longstaff \& Schwartz** (2001), *Valuing American Options by Simulation: A Simple Least-Squares Approach*
+**Longstaff \& Schwartz**, *Valuing American Options by Simulation: A Simple Least-Squares Approach* $(2001)$
 
 Estimate **continuation values** by regressing simulated discounted cash flows onto basis functions $L_0,...,L_B$ of ITM paths:
 
@@ -73,7 +73,7 @@ $$\textbf{Y}_{t_n} = \left[Y(\omega_0; t_n),...,Y(\omega_m; t_n)\right]^T$$
 $$ \textbf{B}_m(t_n) = \left[L_0(X(\omega_m;t_n)),...,L_B(X(\omega_m;t_n))\right]^T, \forall m\in\{1,...,M\}$$
 
 ---
-**Optimal Stopping Strategy** via **Snell Envelope**, work backwards in time:
+**Optimal Stopping Strategy** via **Snell Envelope**, backward recursive formulation:
 
 $$
  V_{t_n} =
@@ -92,40 +92,34 @@ $$
  \end{dcases}
 $$
 
-Apply to each path $\omega_{1,...,M}$ to obtain Bermudan option valuation:
-$$ V_{LSM} := \sum_{i=1}^{m}V_{t_0}(\omega)$$
+$\therefore$ Bermudan Max-Call valuation:
+$$ V_{LSM} := \sum_{i=1}^{m}V_{t_0}(\omega_m)$$
 
+---
+# Continuation Value
 
+* Conditional expected payoff obtained from continuing the option
+* Borel-measurable function in the **Hilbert space** $L^2(\Omega, \mathcal{F}, \mathbb{F}, \mathbb{F})$ 
+* $L^2(\Omega, \mathcal{F}, \mathbb{F}, \mathbb{F})$ admits **orthonormal bases**, e.g. Laguerre polynomials
+* Write the continuation value in such a basis 
+* Perform **OLS-regression** with **polynomial features** on the chosen basis
 
 
 ---
 
-# Recursive Formulation (Dynamic Programming Principle) / Continuation Values / ... SABINA
+# Choice of Basis Functions
 
-
----
-# Approximating the Conditional Expectation SABINA
-
-
-
-* Cond expecatation minimizes MSE over all Borel measureble functions
-* Cannot optimize over that function space -> instead need set of basis functions ...
-
----
-
-# Choice of Basis Functions KONRAD
-
-* What features to use as a regression basis? 
-* For Bermudan Max-Call ($d = 5$):
-    * Longstaff-Schwartz (2001):
-        * first five Hermite polynomials in the value of the most expensive asset
-        * the value and its square of the other 4 assets
-        * selected products between the individual asset prices
-    * Broadie, Cao (2008): 12 - 18 polynonmial basis functions up to $5^{th}$ order
+Regression Features, multi-asset Bermudan options: not restricted to basis functions
+ * Longstaff-Schwartz $(2001)$, $d=5$ asets:
+    * First $5$ Hermite polynomials in the value of the most expensive asset
+    * Value and square of the other $4$ assets
+    * Selected products between individual asset prices
+ * Broadie, Cao $(2008)$: 
+    * Between $12 - 18$ polynonmial basis functions, up to $5^{th}$ order
 
 ---
 
-# LSM Algorithm Pseudo-Code KONRAD
+# LSM Algorithm: Pseudo-Code
 
 ```Py
 
@@ -151,13 +145,13 @@ def lsm(paths):
 ```
 
 ---
-# Issues with Feature Engineering KONRAD
+# Feature Engineering: Issues
 
-* Feature maps not expressive enough for precise pricing
-* Potentially over-engineered to the specifics of the payoff / market dynamics
-* Feature maps grow "only" linearly in $d$, but quickly enough to make them infeasible for large $d$ or $N$
+* Feature maps not rich enough to accurately price complex options
+* Potentially over-engineered to payoff specifics or market dynamics
+* **Curse of Dimensionality**: $\#$ basis functions grows *only polynomially* in $d$, but rapidly becomes infeasible
 
-**Solution**: Learn the feature maps $\rightarrow$ Deep LSM
+$\therefore$ **Solution**: *Learn* the feature maps $\rightarrow$ Deep LSM
 
 ---
 
