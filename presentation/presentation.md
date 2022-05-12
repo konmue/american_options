@@ -33,7 +33,7 @@ Sabina Georgescu, Konrad Müller
 * Bermudan Option: Exercisable on **several** dates
 * American Option: Exercisable on **any** date before expiration
 
-$\therefore\quad$ Bermudan contracts lie between European & American.
+$\therefore\quad$ Bermudan contracts lie between European & American
 
 ---
 
@@ -61,6 +61,9 @@ $$ V_{t_n} = \sup_{\tau\in\{t_n,...,t_N\}} \mathbb{E}[G_\tau \mid \mathcal{F}_{t
 
 ---
 # 2. Least-Squares Monte Carlo
+
+---
+# LSM
 
 **Longstaff \& Schwartz**, *Valuing American Options by Simulation: A Simple Least-Squares Approach* $(2001)$
 
@@ -114,7 +117,7 @@ Regression Features, multi-asset Bermudan options: not restricted to basis funct
     * First $5$ Hermite polynomials in the value of the most expensive asset
     * Value and square of the other $4$ assets
     * Selected products between individual asset prices
- * Broadie, Cao $(2008)$: 
+ * Broadie & Cao $(2008)$: 
     * Between $12 - 18$ polynonmial basis functions, up to $5^{th}$ order
 
 ---
