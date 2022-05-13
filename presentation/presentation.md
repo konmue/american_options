@@ -4,6 +4,7 @@ theme: default
 pagination: true
 math: katex
 ---
+$\newcommand\myeq{\stackrel{\mathclap{\normalfont\mbox{def}}}{=}}$
 
 # Deep Optimal Stopping & Pricing of American-Style Options
 ### Applied Quantitative Finance Seminar
@@ -56,9 +57,9 @@ $$ G_{t_n} =e^{-r t_n}\max_{i = 1, ..., d} \left(S_{t_n}^i - K\right)^+. $$
 
 $$    dS^i_t = S_0^i \exp{\left(\left[r - \delta - \frac{\sigma^2}{2}\right]dt + \sigma dW^i_t\right)};$$
 
-* Pricing formula with $\sup$ attained at $\tau_n$:
+* Pricing formula with $\sup$ attained at $\tau_n\in \mathcal{T}_n :=\{t_n,...,t_N\}$:
 
-$$ V_{t_n} = \sup_{\tau\in\{t_n,...,t_N\}} \mathbb{E}[G_\tau \mid \mathcal{F}_{t_n} ]. $$
+$$ V_{t_n} = \sup_{\tau\in\mathcal{T}_n} \mathbb{E}[G_\tau \mid \mathcal{F}_{t_n} ]. $$
 
 ---
 # 2. Least-Squares Monte Carlo
@@ -255,27 +256,54 @@ where $z_{\alpha/2}$ is the $(1-\alpha/2)^{th}$ quantile of the standard Gaussia
 *Deep Optimal Stopping* (2019a)
 **Becker et al.** 
 
+% Must emphasise that in DOS, indices denote time step rather than actual time, e.g. $X_n$ stands for $X_{t_n}$ and similarly for the stopping times, no longer in $t_0,...t_N$ but rather in $0,....,N.$
+
 ---
 # Motivation
 * **Deep Learning** solution to the **Optimal Stopping Problem**, circumventing the traditional estimation of continuation values $\rightarrow$ **DOS**
-* The immediate payoff & continuation value **comparison** is **inherent** through the choice of **reward/loss** function, thus performed indirectly
-* Method based on an **explicit parameterisation** of the **stopping decision**
-* Decompose the **optimal stopping rule** in a sequence of **binary decisions**, estimated recursively with a sequence of feedforward DNNs
+* **Inherent comparison** of immediate payoff & continuation value through a:
+  * Provable **explicit parameterisation** of the **stopping decision** 
+  * Chosen **reward/loss** function
+
+* **Decompose** the **stopping decision** into **binary decisions**, estimated recursively with a sequence of feedforward DNNs
 
 ---
 
 # Parameterising the Stopping Decision  
-% to be continued
 
-$$    \tau_{n+1} = \sum_{m=n+1}^{N} \left[m \cdot f^{\theta_m}(X_m) \cdot \prod_{j=n+1}^{m-1}(1-f^{\theta_j}(X_j))\right]$$
+**Optimal Stopping Problem**: Given $(\Omega, \mathcal{F},\mathbb{F},\mathbb{P})$- adapted gains process $G,$ find the optimal stopping time $\tau^*_t$ maximising the **value-function**:
+$$V_t = \sup_{t\le\tau\le T}\mathbb{E}\left[G_\tau\mid\mathcal{F}_t\right].$$
+
+**Theorem** (Becker et al.): $\exist$ parameterised **hard stopping decisions** $f^{\theta_n}:\mathbb{R}^d\rightarrow\{0,1\}$ measurable with $f_N\equiv 1$ s.t. the OSP for a Bermudan option admits **stopping decision**:
+
+$$    \tau_{n+1} = \sum_{m=n+1}^{N} \left[m \cdot f^{\theta_m}(X_m) \cdot \prod_{j=n+1}^{m-1}(1-f^{\theta_j}(X_j))\right].$$
 
 ---
 
+* $f^\theta$ nondifferentiable $\Rightarrow$ hyper-parameters $\theta_n$ cannot be learnt via SGD
+
+* Auxiliary **soft stopping decision** $F^{\theta_n}:\mathbb{R}^d\rightarrow(0,1)$ uniquely defines $f^{\theta_n}$
+
+* Equivalent decisions: $f^{\theta_n}=0\text{ or }f^{\theta_n}=1\Leftrightarrow F^{\theta_n} < 1/2 \text{ or } F^{\theta_n}> 1/2$
+
+* Train **stopping probability** $F^{\theta_n}$ with SGA on the reward function 
+
+* Deduce $f^{\theta_n}$ by changing NN's **last layer** from **standard logistic** in $F^\theta$ to $\textbf{1}_{[0,\infty)}$ in $f^\theta$ 
+
+---
 # Parameter Optimisation
 
-* Reward (Loss) calculated using the **soft** stopping decision
+Monte Carlo learn $\theta_n$ by maximising the **realised reward/loss**:
 
-$$    r^k_n(\theta) = g(n,x^k_n)\cdot F^\theta(x^k_n) + g(l^k_{n+1},x^k_{l^k_{n+1}})\cdot (1-F^\theta(x^k_n))$$
+$$r_n(\theta) := \mathbb{E}\left[G_n\cdot F^\theta(X_n) + G_{\tau_{n+1}}\cdot (1-F^\theta(X_n))\right]\\
+\approx \frac{1}{K}\sum_{k=1}^K \left[g^k_n \cdot F^\theta(x^k_n) + g^k_{l_{n+1}}\cdot(1-F^\theta(x^k_{l_n+1})\right] \\
+=: \frac{1}{K}\sum_{k=1}^K r^k_n(\theta) \quad\text{where:}$$
+
+$\tau^k_{n+1}\stackrel{thm.}{\approx}l^k _{n+1}(x^k_{n},...,x^k_N)$ known as $F^{\theta_n,...\theta_N} \Rightarrow f^{\theta_n,...,\theta_N}$ learnt backwards in time.
+
+---
+# Upper Bound
+
 
 ---
 # 5. Dual LSM
