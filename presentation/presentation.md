@@ -61,58 +61,58 @@ $$ V_{t_n} = \sup_{\tau\in\{t_n,...,t_N\}} \mathbb{E}[G_\tau \mid \mathcal{F}_{t
 
 ---
 # 2. Least-Squares Monte Carlo
+**Longstaff \& Schwartz**, *Valuing American Options by Simulation: A Simple Least-Squares Approach* (2001)
 
 ---
-# LSM
+# LSM Method
 
-**Longstaff \& Schwartz**, *Valuing American Options by Simulation: A Simple Least-Squares Approach* $(2001)$
-
-Estimate **continuation values** by regressing simulated discounted cash flows onto basis functions $L_0,...,L_B$ of ITM paths:
+Estimate **continuation values** by regressing simulated discounted cash flows on the linear span of finitely many basis functions $L_0,...,L_B$ of ITM paths:
 
 $$ F(\omega; t_n) \approx \sum_{i=0}^B w^*_i \cdot L_i(X(\omega; t_n)) \quad\text{for}\quad \textbf{w}^* = \min_{w\in\mathbb{R}^{B+1}} || \textbf{Y}_{t_n} - B(t_n)\cdot\textbf{w}||_{L_2}  $$
 
 where the discounted cash flows vector and basis functions matrix are given by:
-$$\textbf{Y}_{t_n} = \left[Y(\omega_0; t_n),...,Y(\omega_m; t_n)\right]^T$$
-$$ \textbf{B}_m(t_n) = \left[L_0(X(\omega_m;t_n)),...,L_B(X(\omega_m;t_n))\right]^T, \forall m\in\{1,...,M\}$$
+$$\textbf{Y}_{t_n} = \left[Y(\omega_0; t_n),...,Y(\omega_m; t_n)\right]^T,$$
+$$ \textbf{B}_m(t_n) = \left[L_0(X(\omega_m;t_n)),...,L_B(X(\omega_m;t_n))\right]^T, \forall m\in\{1,...,M\}.$$
 
 ---
-**Optimal Stopping Strategy** via **Snell Envelope**, backward recursive formulation:
+**Optimal Stopping Value**  captured with the backwards recursion:
 
 $$
- V_{t_n} =
+ \textit{Snell Envelope}\quad V_{t_n} =
  \begin{dcases}
- G_T \quad\text{if } n=N\\
- \max \{G_{t_n}, F_{t_n}\} \quad\text{if } n<N
+ G_T \quad\text{if } n=N,\\
+ \max \{G_{t_n}, F_{t_n}\} \quad\text{if } n<N;
  \end{dcases}
 $$
 
-**Dynamic Programming Equation**:
+**Optimal Stopping Rule**:
  $$
- \tau_n =
+ \textit{Dynamic Programming Eqn.} \quad\tau_n =
  \begin{dcases}
- t_n \quad\text{if } G_{t_n} \ge F_{t_n}\\
- \tau_{n+1} \quad\text{if } G_{t_n} < F_{t_n}
+ t_n \quad\text{if } G_{t_n} \ge F_{t_n},\\
+ \tau_{n+1} \quad\text{if } G_{t_n} < F_{t_n};
  \end{dcases}
 $$
 
 $\therefore$ Bermudan Max-Call valuation:
-$$ V_{LSM} := \sum_{i=1}^{m}V_{t_0}(\omega_m)$$
+$$ V_{LSM} := \sum_{i=1}^{m}V_{t_0}(\omega_m).$$
 
 ---
-# Continuation Value
+# Continuation Values
 
-* Conditional expected payoff obtained from continuing the option
-* Borel-measurable function in the **Hilbert space** $L^2(\Omega, \mathcal{F}, \mathbb{F}, \mathbb{F})$ 
+* Conditional expected payoffs obtained from continuing the option
+* Borel-measurable functions in the **Hilbert space** $L^2(\Omega, \mathcal{F}, \mathbb{F}, \mathbb{F})$ 
 * $L^2(\Omega, \mathcal{F}, \mathbb{F}, \mathbb{F})$ admits **orthonormal bases**, e.g. Laguerre polynomials
-* Write the continuation value in such a basis 
-* Perform **OLS-regression** with **polynomial features** on the chosen basis
+* Write the continuation values in such a basis
+
+$\therefore$ **OLS-regression** with **polynomial features** on the linear span of the chosen basis
 
 
 ---
 
 # Choice of Basis Functions
 
-Regression Features, multi-asset Bermudan options: not restricted to basis functions
+Regression Features for multi-asset Bermudan options: not restricted to basis functions
  * Longstaff-Schwartz $(2001)$, $d=5$ asets:
     * First $5$ Hermite polynomials in the value of the most expensive asset
     * Value and square of the other $4$ assets
@@ -152,20 +152,97 @@ def lsm(paths):
 
 * Feature maps not rich enough to accurately price complex options
 * Potentially over-engineered to payoff specifics or market dynamics
-* **Curse of Dimensionality**: $\#$ basis functions grows *only polynomially* in $d$, but rapidly becomes infeasible
+* **Curse of Dimensionality**: $\#$ basis functions grows "only" polynomially in $d$, but rapidly becomes infeasible
 
-$\therefore$ **Solution**: *Learn* the feature maps $\rightarrow$ Deep LSM
+$\therefore$ Solution: *Learn* the feature maps $\rightarrow$ Deep LSM
 
 ---
 
 # 3. Deep LSM
----
-
-# Lower Bound, Upper Bound, Point Estimate ... SABINA
-
-* I would say we only talk here about the upper bound and leave it out in the LSM part
+**Becker et al.**, *Pricing and Hedging American-Style Options with Deep Learning* (2020)
 
 ---
+
+# Candidate Optimal Stopping Strategy
+
+Estimate **continuation values** with a feedforward Deep Neural Network. Project $G_{\tau_{n+1}}$ on a subset $\{c^\theta(X_{t_n})\}_\theta$ of Borel-measurable functions $c^\theta:\mathbb{R}^d\rightarrow\mathbb{R}$ parameterised by $\theta$, as: 
+
+$$\mathbb{E}\left[G_{\tau_{n+1}}\mid X_{t_n}\right] = c^\theta(X_{t_n})$$
+
+Learn optimal hyperparameter $\theta_n$ by employing SGD to mimise over $\theta$:
+$$\mathbb{E}\left[\left(G_{\tau_{n+1}} - c^\theta(X_{t_n})\right)^2\right]$$
+
+$\therefore$ Summarise all continuation values along the path with:
+ $$\Theta := \left(\theta_0,...,\theta_N\right).$$
+
+---
+**Optimal Stopping Value** via the *Snell Envelope*:
+$$
+V_{t_n} =
+ \begin{dcases}
+ G_T \quad\text{if } n=N,\\
+ \max \{G_{t_n}, c^{\theta_n}(X_{t_n})\} \quad\text{if } n<N;
+ \end{dcases}
+$$
+
+**Optimal Stopping Rule** via the *Dynamic Programming Equation*:
+ $$
+ \tau_n =
+ \begin{dcases}
+ t_n \quad\text{if } G_{t_n} \ge c^{\theta_n}(X_{t_n}),\\
+ \tau_{n+1} \quad\text{if } G_{t_n} <c^{\theta_n}(X_{t_n});
+ \end{dcases}
+$$
+
+$\therefore$ **Optimal Stopping Time**:
+$$\tau^\Theta := \min \{n\in\{0,...,N\} \mid G_{t_n} \ge c^{\theta_n}(X_{t_n})\}.$$
+
+
+---
+# Lower Bound
+Lower Bound estimate: 
+$$L \approx \mathbb{E} \left[G_{\tau^\Theta}\right]$$
+
+where $G_{\tau^\Theta}\approx g^k$ by the Optimal Stopping Rule $\tau^\Theta$ applied to a further $K_L$ independently generated underlying paths. Approximate $L$ with Monte Carlo averaging.
+
+$\therefore$ **Lower Bound**: 
+$$ \hat{L} = \frac{1}{K_U} \sum_{k=K+1}^{K+K_L} g^k.$$
+
+
+
+---
+# Upper Bound
+Upper Bound estimate via **Doob-Mayer Decomposition Theorem**:
+
+$$ U \approx \mathbb{E} \left[\max_{0\le n \le N} \left(G_{t_n} - M^\Theta_{t_n} -\epsilon_n\right)\right]. $$
+
+Refer to *Deep Optimal Stopping* for the nested simulation, with another $K_U$ independent underlying simulation paths, of the martingale realisations $m^k_n.$ Monte Carlo average:
+
+$\therefore$ **Upper Bound**: 
+$$ \hat{U} = \frac{1}{K_U} \sum_{k=K+K_L+1}^{K+K_L+K_U} \max_{i\le n\le N} (g^k_n - m^k_n). $$
+
+
+---
+# Point Estimate \& Confidence Interval
+
+**Point Estimate**: 
+$$ \hat{V} = \frac{\hat{L}+\hat{U}}{2}$$
+
+Sample **standard deviations** of the bounds by the **Central Limit Theorem**:
+
+$$\hat\sigma_L = \sqrt{\frac{1}{K_L-1} \sum_{k=K+1}^{K+K_L} \left(g^k-\hat{L}\right)^2},$$
+
+$$\hat\sigma_U = \sqrt{\frac{1}{K_U-1} \sum_{k=K+K_L+1}^{K+K_L+K_U} \left(\displaystyle\max_{0\le n\le N}\left(g(n,x^k_n) - m^k_n\right)-\hat{U}\right)^2}.$$
+
+---
+**Confidence Interval**: By the CLT, the Optimal Stopping Value from the Snell admits the asymptotically valid two-sided $1-\alpha$ interval:
+
+$$\left[\hat{L} - z_{\alpha/2} \frac{\hat\sigma_L}{\sqrt{K_L}}, \hat{U} + z_{\alpha/2} \frac{\hat\sigma_U}{\sqrt{K_U}}\right]$$
+
+where $z_{\alpha/2}$ is the $(1-\alpha/2)^{th}$ quantile of the standard Gaussian.
+
+---
+
 # 4. Deep Optimal Stopping
 ---
 
