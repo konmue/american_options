@@ -34,7 +34,7 @@ Sabina Georgescu, Konrad Müller
 * Bermudan Option: Exercisable on **several** dates
 * American Option: Exercisable on **any** date before expiration
 
-$\therefore \quad$ Bermudan contracts lie between European & American
+$\therefore\quad$ Bermudan contracts lie between European & American.
 
 ---
 
@@ -42,9 +42,9 @@ $\therefore \quad$ Bermudan contracts lie between European & American
 
 * Call Option on the maximum of $d$ underlying assets $S^{1,...,d}$
 * Finitely many exercise dates $0 = t_0 < t_1 < ...< t_N = T$
-* Discounted payoff at exercise time $t_n$:
+* Discounted payoff (gain) at exercise time $t_n$:
 
-$$ G_{t_n} =e^{-r t_n}\max_{i = 1, ..., d} \left(S_{t_n}^i - K\right)^+ $$
+$$ G_{t_n} =e^{-r t_n}\max_{i = 1, ..., d} \left(S_{t_n}^i - K\right)^+. $$
 
 
 ---
@@ -54,22 +54,39 @@ $$ G_{t_n} =e^{-r t_n}\max_{i = 1, ..., d} \left(S_{t_n}^i - K\right)^+ $$
 
 * $d$-dimensional Brownian Motion $W$ with uncorrelated instantaneous components:
 
-$$    dS^i_t = S_0^i \exp{\left(\left[r - \delta - \frac{\sigma^2}{2}\right]dt + \sigma dW^i_t\right)}$$
+$$    dS^i_t = S_0^i \exp{\left(\left[r - \delta - \frac{\sigma^2}{2}\right]dt + \sigma dW^i_t\right)};$$
 
 * Pricing formula with $\sup$ attained at $\tau_n$:
 
-$$ V_{t_n} = \sup_{\tau\in\{t_n,...,t_N\}} \mathbb{E}[G_\tau \mid \mathcal{F}_{t_n} ] $$
+$$ V_{t_n} = \sup_{\tau\in\{t_n,...,t_N\}} \mathbb{E}[G_\tau \mid \mathcal{F}_{t_n} ]. $$
 
 ---
 # 2. Least-Squares Monte Carlo
-**Longstaff \& Schwartz**, *Valuing American Options by Simulation: A Simple Least-Squares Approach* (2001)
+*Valuing American Options by Simulation: A Simple Least-Squares Approach* (2001)
+**Longstaff \& Schwartz** 
+
+---
+
+# Continuation Values
+
+The **conditional expected payoffs**: 
+$$
+F(\omega; t_n) = \mathbb{E}\left[Y(\omega;t_n) \mid \mathcal{F}_{t_n} \right]$$
+obtained from **continuing the option** at $t_n$ by discounting the **simulated cash flows**:
+$$ Y(\omega;t_n) = \sum_{j=n+1}^{N} \exp\left(-\int_{t_n}^{t_j} r(\omega, s) \, ds\right)\cdot C(\omega, t_n; t_j, T).$$
+
+* Borel-measurable functions in the **Hilbert space** $L^2(\Omega, \mathcal{F}, \mathbb{F}, \mathbb{P})$ 
+* $L^2(\Omega, \mathcal{F}, \mathbb{F}, \mathbb{F})$ admits **orthonormal bases**, e.g. Laguerre polynomials
+* Write the continuation values in such a basis
+
+$\therefore$ **OLS-regression** with **polynomial features** on the linear span of the chosen basis.
 
 ---
 # LSM Method
 
 Estimate **continuation values** by regressing simulated discounted cash flows on the linear span of finitely many basis functions $L_0,...,L_B$ of ITM paths:
 
-$$ F(\omega; t_n) \approx \sum_{i=0}^B w^*_i \cdot L_i(X(\omega; t_n)) \quad\text{for}\quad \textbf{w}^* = \min_{w\in\mathbb{R}^{B+1}} || \textbf{Y}_{t_n} - B(t_n)\cdot\textbf{w}||_{L_2}  $$
+$$ F(\omega; t_n) \approx \sum_{i=0}^B w^*_i \cdot L_i(X(\omega; t_n)) \text{ where } \textbf{w}^* = \min_{w\in\mathbb{R}^{B+1}} || \textbf{Y}_{t_n} - B(t_n)\cdot\textbf{w}||_{L_2}  $$
 
 where the discounted cash flows vector and basis functions matrix are given by:
 $$\textbf{Y}_{t_n} = \left[Y(\omega_0; t_n),...,Y(\omega_m; t_n)\right]^T,$$
@@ -99,21 +116,10 @@ $\therefore$ Bermudan Max-Call valuation:
 $$ V_{LSM} := \sum_{i=1}^{m}V_{t_0}(\omega_m).$$
 
 ---
-# Continuation Values
-
-* Conditional expected payoffs obtained from continuing the option
-* Borel-measurable functions in the **Hilbert space** $L^2(\Omega, \mathcal{F}, \mathbb{F}, \mathbb{F})$ 
-* $L^2(\Omega, \mathcal{F}, \mathbb{F}, \mathbb{F})$ admits **orthonormal bases**, e.g. Laguerre polynomials
-* Write the continuation values in such a basis
-
-$\therefore$ **OLS-regression** with **polynomial features** on the linear span of the chosen basis
-
-
----
 
 # Choice of Basis Functions
 
-Regression Features for multi-asset Bermudan options: not restricted to basis functions
+Regression Features for multi-asset Bermudan options: not restricted to basis functions.
  * Longstaff-Schwartz $(2001)$, $d=5$ asets:
     * First $5$ Hermite polynomials in the value of the most expensive asset
     * Value and square of the other $4$ assets
@@ -152,15 +158,16 @@ def lsm(paths):
 # Feature Engineering: Issues
 
 * Feature maps not rich enough to accurately price complex options
-* Potentially over-engineered to payoff specifics or market dynamics
-* **Curse of Dimensionality**: $\#$ basis functions grows "only" polynomially in $d$, but rapidly becomes infeasible
+* Potentially **over-engineered** to payoff specifics or market dynamics
+* **Curse of Dimensionality**: Basis dimension grows *only* linearly in $d$ (polynomially in higher dimensions), but still rapidly becomes infeasible
 
-$\therefore$ Solution: *Learn* the feature maps $\rightarrow$ Deep LSM
+$\therefore\quad$ *Learn* the feature maps instead $\rightarrow$ **Deep LSM**
 
 ---
 
 # 3. Deep LSM
-**Becker et al.**, *Pricing and Hedging American-Style Options with Deep Learning* (2020)
+*Pricing and Hedging American-Style Options with Deep Learning* (2020)
+**Becker et al.**
 
 ---
 
@@ -168,10 +175,10 @@ $\therefore$ Solution: *Learn* the feature maps $\rightarrow$ Deep LSM
 
 Estimate **continuation values** with a feedforward Deep Neural Network. Project $G_{\tau_{n+1}}$ on a subset $\{c^\theta(X_{t_n})\}_\theta$ of Borel-measurable functions $c^\theta:\mathbb{R}^d\rightarrow\mathbb{R}$ parameterised by $\theta$, as: 
 
-$$\mathbb{E}\left[G_{\tau_{n+1}}\mid X_{t_n}\right] = c^\theta(X_{t_n})$$
+$$\mathbb{E}\left[G_{\tau_{n+1}}\mid X_{t_n}\right] = c^\theta(X_{t_n});$$
 
 Learn optimal hyperparameter $\theta_n$ by employing SGD to mimise over $\theta$:
-$$\mathbb{E}\left[\left(G_{\tau_{n+1}} - c^\theta(X_{t_n})\right)^2\right]$$
+$$\mathbb{E}\left[\left(G_{\tau_{n+1}} - c^\theta(X_{t_n})\right)^2\right].$$
 
 $\therefore$ Summarise all continuation values along the path with:
  $$\Theta := \left(\theta_0,...,\theta_N\right).$$
@@ -227,7 +234,7 @@ $$ \hat{U} = \frac{1}{K_U} \sum_{k=K+K_L+1}^{K+K_L+K_U} \max_{i\le n\le N} (g^k_
 # Point Estimate \& Confidence Interval
 
 **Point Estimate**: 
-$$ \hat{V} = \frac{\hat{L}+\hat{U}}{2}$$
+$$ \hat{V} = \frac{\hat{L}+\hat{U}}{2};$$
 
 Sample **standard deviations** of the bounds by the **Central Limit Theorem**:
 
@@ -245,11 +252,12 @@ where $z_{\alpha/2}$ is the $(1-\alpha/2)^{th}$ quantile of the standard Gaussia
 ---
 
 # 4. Deep Optimal Stopping
-**Becker et al.**, *Deep Optimal Stopping* (2019a)
+*Deep Optimal Stopping* (2019a)
+**Becker et al.** 
 
 ---
 # Motivation
-* **Deep Learning** solution to the **Optimal Stopping Problem**, circumventing the traditional estimation of continuation values $\rightarrow$ DOS
+* **Deep Learning** solution to the **Optimal Stopping Problem**, circumventing the traditional estimation of continuation values $\rightarrow$ **DOS**
 * The immediate payoff & continuation value **comparison** is **inherent** through the choice of **reward/loss** function, thus performed indirectly
 * Method based on an **explicit parameterisation** of the **stopping decision**
 * Decompose the **optimal stopping rule** in a sequence of **binary decisions**, estimated recursively with a sequence of feedforward DNNs
@@ -271,7 +279,8 @@ $$    r^k_n(\theta) = g(n,x^k_n)\cdot F^\theta(x^k_n) + g(l^k_{n+1},x^k_{l^k_{n+
 
 ---
 # 5. Dual LSM
-**Rogers**, *Monte Carlo Valuing of American Options* (2002)
+*Monte Carlo Valuing of American Options* (2002)
+**Rogers** 
 
 ---
 # Dual Valuation
@@ -359,11 +368,9 @@ A Simple Least-Squares Approach](https://people.math.ethz.ch/~hjfurrer/teaching/
 * [Optimal Stopping via Randomized Neural Networks](https://arxiv.org/abs/2104.13669)
 * [Monte Carlo Valuing of American Options](https://www.researchgate.net/publication/227376108_Monte_Carlo_Valuing_of_American_Options)
 
-
 #### Code
 
 https://github.com/konmue/american_options
-
 
 ---
 
