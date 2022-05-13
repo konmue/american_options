@@ -57,7 +57,7 @@ $$ G_{t_n} =e^{-r t_n}\max_{i = 1, ..., d} \left(S_{t_n}^i - K\right)^+. $$
 
 $$    dS^i_t = S_0^i \exp{\left(\left[r - \delta - \frac{\sigma^2}{2}\right]dt + \sigma dW^i_t\right)};$$
 
-* Pricing formula with $\sup$ attained at $\tau_n\in \mathcal{T}_n :=\{t_n,...,t_N\}$:
+* Pricing formula with $\sup$ attained at $\tau_n\in \mathcal{T}_n \{t_n,...,t_N\}$:
 
 $$ V_{t_n} = \sup_{\tau\in\mathcal{T}_n} \mathbb{E}[G_\tau \mid \mathcal{F}_{t_n} ]. $$
 
@@ -114,7 +114,7 @@ $$
 $$
 
 $\therefore$ Bermudan Max-Call valuation:
-$$ V_{LSM} := \sum_{i=1}^{m}V_{t_0}(\omega_m).$$
+$$ V_{LSM} = \sum_{i=1}^{m}V_{t_0}(\omega_m).$$
 
 ---
 
@@ -181,8 +181,8 @@ $$\mathbb{E}\left[G_{\tau_{n+1}}\mid X_{t_n}\right] = c^\theta(X_{t_n});$$
 Learn optimal hyperparameter $\theta_n$ by employing SGD to mimise over $\theta$:
 $$\mathbb{E}\left[\left(G_{\tau_{n+1}} - c^\theta(X_{t_n})\right)^2\right].$$
 
-$\therefore$ Summarise all continuation values along the path with:
- $$\Theta := \left(\theta_0,...,\theta_N\right).$$
+$\therefore$ Summarise all continuation values with:
+ $$\Theta = \left(\theta_0,...,\theta_N\right).$$
 
 ---
 **Optimal Stopping Value** via the *Snell Envelope*:
@@ -204,7 +204,7 @@ $$
 $$
 
 $\therefore$ **Optimal Stopping Time**:
-$$\tau^\Theta := \min \{n\in\{0,...,N\} \mid G_{t_n} \ge c^{\theta_n}(X_{t_n})\}.$$
+$$\tau^\Theta = \min \{n\in\{0,...,N\} \mid G_{t_n} \ge c^{\theta_n}(X_{t_n})\}.$$
 
 
 ---
@@ -215,20 +215,20 @@ $$L \approx \mathbb{E} \left[G_{\tau^\Theta}\right]$$
 where $G_{\tau^\Theta}\approx g^k$ by the Optimal Stopping Rule $\tau^\Theta$ applied to a further $K_L$ independently generated underlying paths. Approximate $L$ with Monte Carlo averaging.
 
 $\therefore$ **Lower Bound**: 
-$$ \hat{L} = \frac{1}{K_U} \sum_{k=K+1}^{K+K_L} g^k.$$
+$$ \hat{L} := \frac{1}{K_U} \sum_{k=K+1}^{K+K_L} g^k.$$
 
 
 
 ---
 # Upper Bound
-Upper Bound estimate via **Doob-Mayer Decomposition Theorem**:
+Upper Bound estimate via **Doob-Mayer Decomposition,** according to Rogers (2002):
 
 $$ U \approx \mathbb{E} \left[\max_{0\le n \le N} \left(G_{t_n} - M^\Theta_{t_n} -\epsilon_n\right)\right]. $$
 
 Refer to *Deep Optimal Stopping* for the nested simulation, with another $K_U$ independently generated underlying paths, of the martingale realisations $m^k_n.$ Monte Carlo average:
 
 $\therefore$ **Upper Bound**: 
-$$ \hat{U} = \frac{1}{K_U} \sum_{k=K+K_L+1}^{K+K_L+K_U} \max_{i\le n\le N} (g^k_n - m^k_n). $$
+$$ \hat{U}: = \frac{1}{K_U} \sum_{k=K+K_L+1}^{K+K_L+K_U} \max_{i\le n\le N} (g^k_n - m^k_n). $$
 
 
 ---
@@ -274,7 +274,7 @@ where $z_{\alpha/2}$ is the $(1-\alpha/2)^{th}$ quantile of the standard Gaussia
 **Optimal Stopping Problem**: Given $(\Omega, \mathcal{F},\mathbb{F},\mathbb{P})$- adapted gains process $G,$ find the optimal stopping time $\tau^*_t$ maximising the **value-function**:
 $$V_t = \sup_{t\le\tau\le T}\mathbb{E}\left[G_\tau\mid\mathcal{F}_t\right].$$
 
-**Theorem** (Becker et al.): $\exist$ parameterised **hard stopping decisions** $f^{\theta_n}:\mathbb{R}^d\rightarrow\{0,1\}$ measurable with $f_N\equiv 1$ s.t. the OSP for a Bermudan option admits **stopping decision**:
+**Theorem** (Becker et al.): $\exist$ parameterised **hard stopping decisions** $f^{\theta_n}:\mathbb{R}^d\rightarrow\{0,1\}$ measurable with $f^{\theta_N}\equiv 1$ s.t. the OSP for a Bermudan option admits **stopping strategy**:
 
 $$    \tau_{n+1} = \sum_{m=n+1}^{N} \left[m \cdot f^{\theta_m}(X_m) \cdot \prod_{j=n+1}^{m-1}(1-f^{\theta_j}(X_j))\right].$$
 
@@ -286,24 +286,39 @@ $$    \tau_{n+1} = \sum_{m=n+1}^{N} \left[m \cdot f^{\theta_m}(X_m) \cdot \prod_
 
 * Equivalent decisions: $f^{\theta_n}=0\text{ or }f^{\theta_n}=1\Leftrightarrow F^{\theta_n} < 1/2 \text{ or } F^{\theta_n}> 1/2$
 
-* Train **stopping probability** $F^{\theta_n}$ with SGA on the reward function 
+* Train **stopping probability** $F^{\theta_n}$ with SGA on the *realised* reward function 
 
 * Deduce $f^{\theta_n}$ by changing NN's **last layer** from **standard logistic** in $F^\theta$ to $\textbf{1}_{[0,\infty)}$ in $f^\theta$ 
+
+* $\Theta = \left(\theta_0,...,\theta_N\right)$ captures the **optimal stopping strategy** $(\tau^\Theta_n)_{n=1}^N$ as in thm.
 
 ---
 # Parameter Optimisation
 
-Monte Carlo learn $\theta_n$ by maximising the **realised reward/loss**:
+Monte Carlo learn $\theta_n$ by maximising the **reward/loss**:
 
-$$r_n(\theta) := \mathbb{E}\left[G_n\cdot F^\theta(X_n) + G_{\tau_{n+1}}\cdot (1-F^\theta(X_n))\right]\\
-\approx \frac{1}{K}\sum_{k=1}^K \left[g^k_n \cdot F^\theta(x^k_n) + g^k_{l_{n+1}}\cdot(1-F^\theta(x^k_{l_n+1})\right] \\
-=: \frac{1}{K}\sum_{k=1}^K r^k_n(\theta) \quad\text{where:}$$
+$$r_n(\theta) = \mathbb{E}\left[G_n\cdot F^\theta(X_n) + G_{\tau_{n+1}}\cdot (1-F^\theta(X_n))\right]\\
+\approx \frac{1}{K}\sum_{k=1}^K \left[g^k_n \cdot F^\theta(x^k_n) + g^k_{l_{n+1}}\cdot(1-F^\theta(x^k_n))\right] \\
+=: \frac{1}{K}\sum_{k=1}^K r^k_n(\theta) \text{ with } \tau^k_{n+1}\stackrel{thm.}{\approx}l _{n+1}(x^k_{n},...,x^k_N)=: l^k_{n+1} $$
 
-$\tau^k_{n+1}\stackrel{thm.}{\approx}l^k _{n+1}(x^k_{n},...,x^k_N)$ known as $F^{\theta_n,...\theta_N} \Rightarrow f^{\theta_n,...,\theta_N}$ learnt backwards in time.
+computable since  $F^{\theta_n,...\theta_N} \Rightarrow f^{\theta_n,...,\theta_N}$ are being learnt backwards in time.
 
 ---
 # Upper Bound
+Becker et al. write the martingale part in $U \approx \mathbb{E} \left[\max_{0\le n \le N} \left(G_{t_n} - M^\Theta_{t_n} -\epsilon_n\right)\right]$ as:
 
+$\begin{dcases}
+ M^\Theta_0 = 0; \\
+ M^\Theta_n - M^\Theta_{n-1} = f^{\theta_n}(X_n)\cdot G_n + (1-f^{\theta_n}(X_n))\cdot C^\Theta_n - C^\Theta_{n-1},
+\end{dcases}$
+
+where $C^\Theta_n = \mathbb{E}\left[G_{\tau^\Theta_{n+1}}\mid X_n\right]$ for $n \in\{0,...,N-1\}.$
+
+Nest $J$ independent continuations to each simulated instance $x^{1,...,K_U}_n:$
+$$ C^\Theta_n \approx c^k_n = \frac{1}{J}\sum_{j=1}^J g^{k,j}_{l_{n+1}} \text{ with } \tau^{k,j}_{n+1}\stackrel{thm.}{\approx}l _{n+1}(x^{k,j}_{n},...,x^{k,j}_N)=: l^{k,j}_{n+1}.$$
+
+Estimate $M^\Theta_n \approx m^k_n$ by summing up:
+$$M^\Theta_n - M^\Theta_{n-1} \approx m^k_n - m^k_{n-1} := f^{\theta_n}(x^k_n)\cdot g^k_n + (1-f^{\theta_n})\cdot c^k_n -c^k_{n-1}.$$
 
 ---
 # 5. Dual LSM
