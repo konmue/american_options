@@ -318,7 +318,7 @@ Nest $J$ independent continuations to each simulated instance $x^{1,...,K_U}_n:$
 $$ C^\Theta_n \approx c^k_n = \frac{1}{J}\sum_{j=1}^J g^{k,j}_{l_{n+1}} \text{ with } \tau^{k,j}_{n+1}\stackrel{thm.}{\approx}l _{n+1}(x^{k,j}_{n},...,x^{k,j}_N)=: l^{k,j}_{n+1}.$$
 
 Estimate $M^\Theta_n \approx m^k_n$ by summing up:
-$$M^\Theta_n - M^\Theta_{n-1} \approx m^k_n - m^k_{n-1} := f^{\theta_n}(x^k_n)\cdot g^k_n + (1-f^{\theta_n})\cdot c^k_n -c^k_{n-1}.$$
+$$M^\Theta_n - M^\Theta_{n-1} \approx m^k_n - m^k_{n-1} := f^{\theta_n}(x^k_n)\cdot g^k_n + (1-f^{\theta_n}(x^k_n))\cdot c^k_n -c^k_{n-1}.$$
 
 ---
 # 5. Dual LSM
