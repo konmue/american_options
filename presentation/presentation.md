@@ -216,7 +216,7 @@ Upper Bound estimate via **Doob-Mayer Decomposition Theorem**:
 
 $$ U \approx \mathbb{E} \left[\max_{0\le n \le N} \left(G_{t_n} - M^\Theta_{t_n} -\epsilon_n\right)\right]. $$
 
-Refer to *Deep Optimal Stopping* for the nested simulation, with another $K_U$ independent underlying simulation paths, of the martingale realisations $m^k_n.$ Monte Carlo average:
+Refer to *Deep Optimal Stopping* for the nested simulation, with another $K_U$ independently generated underlying paths, of the martingale realisations $m^k_n.$ Monte Carlo average:
 
 $\therefore$ **Upper Bound**: 
 $$ \hat{U} = \frac{1}{K_U} \sum_{k=K+K_L+1}^{K+K_L+K_U} \max_{i\le n\le N} (g^k_n - m^k_n). $$
