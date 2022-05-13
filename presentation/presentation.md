@@ -2,6 +2,7 @@
 marp: true
 theme: default
 pagination: true
+math: katex
 ---
 
 # Deep Optimal Stopping & Pricing of American-Style Options
@@ -33,7 +34,7 @@ Sabina Georgescu, Konrad Müller
 * Bermudan Option: Exercisable on **several** dates
 * American Option: Exercisable on **any** date before expiration
 
-$\therefore\quad$ Bermudan contracts lie between European & American
+$\therefore \quad$ Bermudan contracts lie between European & American
 
 ---
 
@@ -244,35 +245,44 @@ where $z_{\alpha/2}$ is the $(1-\alpha/2)^{th}$ quantile of the standard Gaussia
 ---
 
 # 4. Deep Optimal Stopping
----
+**Becker et al.**, *Deep Optimal Stopping* (2019a)
 
+---
 # Motivation
-
-* DLSM: Uses neural networks to approximate continuation values that are then compared to the immediate payoff of the option
-* The immediate payoff is already a feature for the neural network
-
-$\rightarrow$ Let the neural network make this comparison step inherently, i.e., parametrize the stopping decision directly (**Deep Optimal Stopping**)
+* **Deep Learning** solution to the **Optimal Stopping Problem**, circumventing the traditional estimation of continuation values $\rightarrow$ DOS
+* The immediate payoff & continuation value **comparison** is **inherent** through the choice of **reward/loss** function, thus performed indirectly
+* Method based on an **explicit parameterisation** of the **stopping decision**
+* Decompose the **optimal stopping rule** in a sequence of **binary decisions**, estimated recursively with a sequence of feedforward DNNs
 
 ---
 
-# Parametrizing the stopping decision
+# Parameterising the Stopping Decision  
+% to be continued
 
 $$    \tau_{n+1} = \sum_{m=n+1}^{N} \left[m \cdot f^{\theta_m}(X_m) \cdot \prod_{j=n+1}^{m-1}(1-f^{\theta_j}(X_j))\right]$$
 
 ---
 
-# Parameter Optimization
+# Parameter Optimisation
 
 * Reward (Loss) calculated using the **soft** stopping decision
 
 $$    r^k_n(\theta) = g(n,x^k_n)\cdot F^\theta(x^k_n) + g(l^k_{n+1},x^k_{l^k_{n+1}})\cdot (1-F^\theta(x^k_n))$$
 
 ---
+# 5. Dual LSM
+**Rogers**, *Monte Carlo Valuing of American Options* (2002)
+
+---
+# Dual Valuation
+% will keep it real short
+
+---
 # 6. Results
 
 ---
 
-# Results LSM
+# Results: LSM
 
 <center>
 
@@ -290,7 +300,7 @@ $$    r^k_n(\theta) = g(n,x^k_n)\cdot F^\theta(x^k_n) + g(l^k_{n+1},x^k_{l^k_{n+
 ---
 
 
-# Results DLSM
+# Results: DLSM
 <center>
 
 | d  | $S_0$ | L     | U     | Point Est. | 95 \% CI       |
@@ -305,7 +315,7 @@ $$    r^k_n(\theta) = g(n,x^k_n)\cdot F^\theta(x^k_n) + g(l^k_{n+1},x^k_{l^k_{n+
 </center>
 
 ---
-# Results DOS
+# Results: DOS
 
 <center>
 
@@ -333,8 +343,8 @@ $$    r^k_n(\theta) = g(n,x^k_n)\cdot F^\theta(x^k_n) + g(l^k_{n+1},x^k_{l^k_{n+
 | 10 | 90    | 26.22 | 26.19 | 26.28      |
 | 10 | 100   | 38.34 | 38.24 | 38.37      |
 | 10 | 110   | 51.06 | 50.80 | 50.90      |
-
 </center>
+
 
 ---
 
@@ -347,6 +357,7 @@ A Simple Least-Squares Approach](https://people.math.ethz.ch/~hjfurrer/teaching/
 * [Deep optimal stopping](https://arxiv.org/pdf/1804.05394.pdf)
 * [ Pricing and Hedging American-Style Options with Deep Learning](https://www.mdpi.com/1911-8074/13/7/158/htm)
 * [Optimal Stopping via Randomized Neural Networks](https://arxiv.org/abs/2104.13669)
+* [Monte Carlo Valuing of American Options](https://www.researchgate.net/publication/227376108_Monte_Carlo_Valuing_of_American_Options)
 
 
 #### Code
