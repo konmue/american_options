@@ -86,7 +86,7 @@ $\therefore$ **OLS-regression** with **polynomial features** on the linear span 
 
 Estimate **continuation values** by regressing simulated discounted cash flows on the linear span of finitely many basis functions $L_0,...,L_B$ of ITM paths:
 
-$$ F(\omega; t_n) \approx \sum_{i=0}^B w^*_i \cdot L_i(X(\omega; t_n)) \text{ where } \textbf{w}^* = \min_{w\in\mathbb{R}^{B+1}} || \textbf{Y}_{t_n} - B(t_n)\cdot\textbf{w}||_{L_2}  $$
+$$ F_B(\omega; t_n) \approx \sum_{i=0}^B w^*_i \cdot L_i(X(\omega; t_n)) \text{ where } \textbf{w}^* = \min_{w\in\mathbb{R}^{B+1}} || \textbf{Y}_{t_n} - B(t_n)\cdot\textbf{w}||_{L_2}  $$
 
 where the discounted cash flows vector and basis functions matrix are given by:
 $$\textbf{Y}_{t_n} = \left[Y(\omega_0; t_n),...,Y(\omega_m; t_n)\right]^T,$$
@@ -255,8 +255,6 @@ where $z_{\alpha/2}$ is the $(1-\alpha/2)^{th}$ quantile of the standard Gaussia
 *Deep Optimal Stopping* (2019a)
 **Becker et al.** 
 
-% Must emphasise that in DOS, indices denote time step rather than actual time, e.g. $X_n$ stands for $X_{t_n}$ and similarly for the stopping times, no longer in $t_0,...t_N$ but rather in $0,....,N.$
-
 ---
 # Motivation
 * **Deep Learning** solution to the **Optimal Stopping Problem**, circumventing the traditional estimation of continuation values $\rightarrow$ **DOS**
@@ -311,10 +309,10 @@ $\begin{dcases}
  M^\Theta_n - M^\Theta_{n-1} = f^{\theta_n}(X_n)\cdot G_n + (1-f^{\theta_n}(X_n))\cdot C^\Theta_n - C^\Theta_{n-1}
 \end{dcases}$
 
-where $C^\Theta_n = \mathbb{E}\left[G_{\tau^\Theta_{n+1}}\mid X_n\right]$ for $n \in\{0,...,N-1\}.$
+for **continuation values** $C^\Theta_n = \mathbb{E}\left[G_{\tau^\Theta_{n+1}}\mid X_n\right]$ for $n \in\{0,...,N-1\}.$
 
 Nest $J$ independent continuations to each simulated instance $x^{1,...,K_U}_n:$
-$$ C^\Theta_n \approx c^k_n = \frac{1}{J}\sum_{j=1}^J g^{k,j}_{l_{n+1}} \text{ with } \tau^{k,j}_{n+1}\stackrel{thm.}{\approx}l _{n+1}(x^{k,j}_{n},...,x^{k,j}_N)=: l^{k,j}_{n+1}.$$
+$$ C^\Theta_n \approx c^k_n := \frac{1}{J}\sum_{j=1}^J g^{k,j}_{l_{n+1}} \text{ with } \tau^{k,j}_{n+1}\stackrel{thm.}{\approx}l _{n+1}(x^{k,j}_{n},...,x^{k,j}_N)=: l^{k,j}_{n+1}.$$
 
 Estimate $M^\Theta_n \approx m^k_n$ by summing up:
 $$M^\Theta_n - M^\Theta_{n-1} \approx m^k_n - m^k_{n-1} := f^{\theta_n}(x^k_n)\cdot g^k_n + (1-f^{\theta_n}(x^k_n))\cdot c^k_n -c^k_{n-1}.$$
@@ -326,6 +324,17 @@ $$M^\Theta_n - M^\Theta_{n-1} \approx m^k_n - m^k_{n-1} := f^{\theta_n}(x^k_n)\c
 
 ---
 # Dual Valuation
+
+* Take **stopping rule** $\tau^\Theta:=\left(\theta_1,...,\theta_N\right)$ from the **LSM Dynamic Programming Eqn.** the realised **binary stopping decisions** $f^{\theta_n}$ backwards by the DOS Thm.
+
+* Consider the **continuation values** simulated from $F(\omega; t_n\mapsto n)$ in **LSM**:
+
+$$F^\Theta_n \approx c^k_n := \frac{1}{J}\sum_{j=1}^{J} F(x^k; l^{k,j}_{n+1})$$
+
+* **LSM gains** $g^k_n = Y(x^k;n)$ lead to similarly to **DOS** \& **DLSM**:
+$$m^k_n - m^k_{n-1} := f^{\theta_n}(x^k_n)\cdot g^k_n + (1-f^{\theta_n}(x^k_n))\cdot c^k_n -c^k_{n-1},\\
+\therefore\quad \hat{U}_{LSM} := \frac{1}{K_U} \sum_{k=K+K_L+1}^{K+K_L+K_U} \max_{i\le n\le N} (g^k_n - m^k_n).  $$ 
+
 
 
 ---
