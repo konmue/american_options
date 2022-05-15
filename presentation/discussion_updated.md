@@ -143,9 +143,9 @@ $\therefore\quad$ **Lookahead bias** for an option, from training on different o
 
 * Follow **Hull \& White** (2017): *eliminate target encoding* by only considering data points (options) with *prices available on successive days*
 
-* About Cross-Validation \& Lookahead Bias: 
+* On Cross-Validation \& Lookahead Bias: 
     * *At least*: split data into train, validation, and test *periods* (no shuffling and avoiding any leakage);
-    * *Better*: repeat the above using *rolling windows*, w/o a fixed origin;
+    * *Better*: repeat the above using *rolling windows*, w/ or w/o a fixed origin;
     * *Alternatively*: consider *CV techniques* that are *not just *Walk-Forward** methods, but specialised to minimise biases, say by deleting overlapping periods (purging, embargo, ...) - see e.g. **De Prado** (2018)
 
 ---
