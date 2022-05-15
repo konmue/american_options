@@ -153,6 +153,6 @@ $\therefore\quad$ **Lookahead bias** for an option, from training on different o
 # Questions 
 
 
-* **Hull \& White** (2017) filter out options with $\delta_{BS} \leq 0.05$ and  $\delta_{BS} \geq 0.95$. Did you consider this as a potential solution to avoided the reported "explosions"?
+* **Hull \& White** (2017) filter out options with $\delta_{BS} \leq 0.05$ and  $\delta_{BS} \geq 0.95$. Did you consider this as a potential solution to avoid the reported "explosions"?
 
 * **ITM options** are usually **illiquid**, as one might as well trade in the underlying. Why did your data set consist mainly in deep OTM \& deep ITM options?
