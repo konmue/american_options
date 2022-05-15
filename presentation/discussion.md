@@ -2,6 +2,7 @@
 marp: true
 theme: default
 pagination: true
+math: katex
 ---
 
 # CAN NEURAL NETWORKS SMILE? 
@@ -13,30 +14,35 @@ Authors: Jonathan Baker and Feodor Doval
 Discussed by: Sabina Georgescu, Konrad Müller
 
 ---
-# Minimum Variance Hedging
+# Motivation: Minimum-Variance Hedging
 
-* Hedging an option based on the Black-Scholes delta does not generally minimize the variance of the hedged portfolio
+* Delta-hedging options within the BS paradigm generally fails to minimise the hedging portfolio's variance, due to a non-zero correlation between the underlying's price and volatility movements
 
-* The hedging position in the underlying that achieves minimum variance is called the **minimum variance** (MV) delta
+* **MV $\delta$**: Accounts for both changes to achieve min. variance in the hedging position:
 
 $$\delta_{MV} := \argmin_{\delta} Var(\Delta f - \delta \Delta S)$$
 
-* It can be approximated (see Hull and White 2017, Appendix A) as 
+* Hull & White (2017, appx. A) approximate it as: 
 $$\delta_{MV} \approx \delta_{BS} + \nu_{BS} \frac{\partial E[\sigma_{imp}]}{\partial S}$$
 
 
-* This reduces the problem of finding $\delta_{MV}$ to estimating $E[\Delta \sigma_{imp}]$
+$\therefore$ Finding $\delta_{MV}$ reduces to estimating the **expected change in IV**, $E[\Delta \sigma_{imp}].$
 
 ---
 
-# Estimating the expected implied volatility change
+# Estimation: Expected Changes in IV
+Proposed estimation models for $E[\Delta \sigma_{imp}]$ :
+  * **Hull and White** (2017): analytical form with 3-parameters
+  * **Cao et al.** (2018): **feed-forward NNs** with 3 (4) features: 
+    $$\frac{\Delta S}{S}, \delta_{\mathrm{BS}}, \tau, (\text{VIX}).$$
 
-* To estimate $E[\Delta \sigma_{imp}]$
-    * Hull and White (2017) propose an analytical form with 3-parameters
-    * Cao et al. (2018) propose using **feed-forward neural networks** with 3 (4) features: 
-    $$\frac{\Delta S}{S}, \delta_{\mathrm{BS}}, \tau, (\text{VIX})$$
-* The forecasts of the different models are compared relatively with each other based on their impact on the **hedging performance**
-* BD replicate both methodologies, confirm the literature results that the neural network based approach outperforms the parsimonious model, and highlight bad prediction behaviour for extreme $\delta_{BS}$
+Replication:
+
+* Theoretical methodology comparison};
+* Results align with the literature: NN models outperform the parsimonious HW};
+* Model forecast comparison via simple \textbf{hedging performance} metric};
+* Highlights bad prediction behaviour for extreme $\delta_{BS}$.
+
 
 ---
 # IV surface approach

@@ -4,7 +4,6 @@ theme: default
 pagination: true
 math: katex
 ---
-$\newcommand\myeq{\stackrel{\mathclap{\normalfont\mbox{def}}}{=}}$
 
 # Deep Optimal Stopping & Pricing of American-Style Options
 ### Applied Quantitative Finance Seminar
@@ -280,7 +279,7 @@ $$    \tau_{n+1} = \sum_{m=n+1}^{N} \left[m \cdot f^{\theta_m}(X_m) \cdot \prod_
 
 ---
 
-* $f^\theta$ nondifferentiable $\Rightarrow$ hyper-parameters $\theta_n$ cannot be learnt via SGD
+* $f^\theta$ non-differentiable $\Rightarrow$ hyper-parameters $\theta_n$ cannot be learnt via SGD
 
 * Auxiliary **soft stopping decision** $F^{\theta_n}:\mathbb{R}^d\rightarrow(0,1)$ uniquely defines $f^{\theta_n}$
 
@@ -308,8 +307,8 @@ computable since  $F^{\theta_n,...\theta_N} \Rightarrow f^{\theta_n,...,\theta_N
 Becker et al. write the martingale part in $U \approx \mathbb{E} \left[\max_{0\le n \le N} \left(G_{t_n} - M^\Theta_{t_n} -\epsilon_n\right)\right]$ as:
 
 $\begin{dcases}
- M^\Theta_0 = 0; \\
- M^\Theta_n - M^\Theta_{n-1} = f^{\theta_n}(X_n)\cdot G_n + (1-f^{\theta_n}(X_n))\cdot C^\Theta_n - C^\Theta_{n-1},
+ M^\Theta_0 = 0, \\
+ M^\Theta_n - M^\Theta_{n-1} = f^{\theta_n}(X_n)\cdot G_n + (1-f^{\theta_n}(X_n))\cdot C^\Theta_n - C^\Theta_{n-1}
 \end{dcases}$
 
 where $C^\Theta_n = \mathbb{E}\left[G_{\tau^\Theta_{n+1}}\mid X_n\right]$ for $n \in\{0,...,N-1\}.$
@@ -327,7 +326,7 @@ $$M^\Theta_n - M^\Theta_{n-1} \approx m^k_n - m^k_{n-1} := f^{\theta_n}(x^k_n)\c
 
 ---
 # Dual Valuation
-% will keep it real short
+
 
 ---
 # 6. Results
