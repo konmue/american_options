@@ -325,11 +325,11 @@ $$M^\Theta_n - M^\Theta_{n-1} \approx m^k_n - m^k_{n-1} := f^{\theta_n}(x^k_n)\c
 ---
 # Dual Valuation
 
-* Take **stopping rule** $\tau^\Theta:=\left(\theta_1,...,\theta_N\right)$ from the **LSM Dynamic Programming Eqn.** the realised **binary stopping decisions** $f^{\theta_n}$ backwards by the DOS Thm.
+* Take **stopping rule** $\tau^\Theta:=\left(\theta_1,...,\theta_N\right)$ from the **LSM dynamic programming eqn.** to deduce **binary stopping decisions** $f^{\theta_n}$ backwards by the thm. in **DOS**
 
 * Consider the **continuation values** simulated from $F(\omega; t_n\mapsto n)$ in **LSM**:
 
-$$F^\Theta_n \approx c^k_n := \frac{1}{J}\sum_{j=1}^{J} F(x^k; l^{k,j}_{n+1})$$
+$$F^\Theta_n \approx c^k_n := \frac{1}{J}\sum_{j=1}^{J} F(x^{k,j}; l^{k,j}_{n+1})$$
 
 * **LSM gains** $g^k_n = Y(x^k;n)$ lead to similarly to **DOS** \& **DLSM**:
 $$m^k_n - m^k_{n-1} := f^{\theta_n}(x^k_n)\cdot g^k_n + (1-f^{\theta_n}(x^k_n))\cdot c^k_n -c^k_{n-1},\\
