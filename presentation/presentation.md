@@ -30,9 +30,9 @@ Sabina Georgescu, Konrad Müller
 
 # Context
 
-* European Option: Exercisbale on a **single** date
-* Bermudan Option: Exercisable on **several** dates
-* American Option: Exercisable on **any** date before expiration
+* European Option: Can be exercised on a **single** date
+* Bermudan Option: Can be exercised on **several** dates
+* American Option: Can be exercised on **any** date before expiration
 
 $\therefore\quad$ Bermudan contracts lie between European & American.
 
@@ -119,7 +119,7 @@ $$ V_{LSM} = \sum_{i=1}^{m}V_{t_0}(\omega_m).$$
 
 # Choice of Basis Functions
 
-Regression Features for multi-asset Bermudan options: not restricted to basis functions.
+Regression Features for multi-asset Bermudan options:
  * Longstaff-Schwartz $(2001)$, $d=5$ asets:
     * First $5$ Hermite polynomials in the value of the most expensive asset
     * Value and square of the other $4$ assets
@@ -137,7 +137,7 @@ def lsm(paths):
 
     payoff_at_stop = payoff_fn(N, paths[:, -1])
 
-    for n in np.arange(start=N, stop=0, step=-1):
+    for n in np.arange(start=N-1, stop=0, step=-1):
 
         x_n = paths[:, n]
         payoff_now = payoff_fn(n, x_n)
@@ -157,9 +157,10 @@ def lsm(paths):
 ---
 # Feature Engineering: Issues
 
-* Feature maps not rich enough to accurately price complex options
+* Unclear which feature maps are rich enough to accurately price complex options
 * Potentially **over-engineered** to payoff specifics or market dynamics
-* **Curse of Dimensionality**: Basis dimension grows *only* linearly in $d$ (polynomially in higher dimensions), but still rapidly becomes infeasible
+* **Curse of Dimensionality**: Dimension of feature space can grow quickly when using the same feature map for larger $d$
+    * computational limits might require simpler feature maps for large $d$
 
 $\therefore\quad$ *Learn* the feature maps instead $\rightarrow$ **Deep LSM**
 
@@ -276,14 +277,13 @@ $$V_t = \sup_{t\le\tau\le T}\mathbb{E}\left[G_\tau\mid\mathcal{F}_t\right].$$
 $$    \tau_{n+1} = \sum_{m=n+1}^{N} \left[m \cdot f^{\theta_m}(X_m) \cdot \prod_{j=n+1}^{m-1}(1-f^{\theta_j}(X_j))\right].$$
 
 ---
-
-* $f^\theta$ non-differentiable $\Rightarrow$ hyper-parameters $\theta_n$ cannot be learnt via SGD
-
 * Auxiliary **soft stopping decision** $F^{\theta_n}:\mathbb{R}^d\rightarrow(0,1)$ uniquely defines $f^{\theta_n}$
 
 * Equivalent decisions: $f^{\theta_n}=0\text{ or }f^{\theta_n}=1\Leftrightarrow F^{\theta_n} < 1/2 \text{ or } F^{\theta_n}> 1/2$
 
-* Train **stopping probability** $F^{\theta_n}$ with SGA on the *realised* reward function 
+* gradients of $f^\theta$ are (apart from $F^{\theta_n} = 0$) equal to zero and hence useless for GD
+
+* Hence, train using the **stopping probability** $F^{\theta_n}$ with SGA on the *realised* reward function 
 
 * Deduce $f^{\theta_n}$ by changing NN's **last layer** from **standard logistic** in $F^\theta$ to $\textbf{1}_{[0,\infty)}$ in $f^\theta$ 
 
@@ -405,6 +405,15 @@ $$m^k_n - m^k_{n-1} := f^{\theta_n}(x^k_n)\cdot g^k_n + (1-f^{\theta_n}(x^k_n))\
 | 10 | 110   | 51.06 | 50.80 | 50.90      |
 </center>
 
+
+---
+
+# Conclusion
+
+* Regression based methods for pricing american options are useful and model independent
+* LSM requires feature engineering, which can be avoided by parametrizing and learning the feature maps with neural networks  (DLSM)
+* DOS parametrizes the stopping policy directly with neural networks; internalizing the comparison of continuation value and current payoff
+* We confirm the literature results that deep learning based approaches are stable and accurate in pricing Bermudan max-call options
 
 ---
 
