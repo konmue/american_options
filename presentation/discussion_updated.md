@@ -9,15 +9,15 @@ math: katex
 ### EXPLORING IMPLIED VOLATILITY MOVEMENTS USING DEEP LEARNING
 ### *Applied Quantitative Finance Seminar*
 
-Authors: Jonathan Baker and Feodor Doval
+Authors: Jonathan Baker, Feodor Doval
 
-Discussed by: Sabina Georgescu, Konrad Müller
+Discussion: Sabina Georgescu, Konrad Müller
 
 ---
 # Overview
 
 1. Context
-2. Contributions
+2. Contribution
 3. Criticism
 
 ---
@@ -65,7 +65,7 @@ Relative model forecasting comparison: **hedge performance** metric.
 $\therefore\quad$ The **predictive accuracy** over the standard model is in line with the literature, yet overshadowed by a **lack of robustness**.
 
 ---
-# 2. Contributions
+# 2. Contribution
 
 ---
 # IVS Approach
@@ -143,7 +143,7 @@ $\therefore\quad$ **Lookahead bias** for an option, from training on different o
 
 * Follow **Hull \& White** (2017): *eliminate target encoding* by only considering data points (options) with *prices available on successive days*
 
-* On Cross-Validation \& Lookahead Bias: 
+* On **Cross-Validation** \& **Lookahead Bias**: 
     * *At least*: split data into train, validation, and test *periods* (no shuffling and avoiding any leakage);
     * *Better*: repeat the above using *rolling windows*, w/ or w/o a fixed origin;
     * *Alternatively*: consider *CV techniques* that are *not just *Walk-Forward** methods, but specialised to minimise biases, say by deleting overlapping periods (purging, embargo, ...) - see e.g. **De Prado** (2018)
@@ -155,4 +155,4 @@ $\therefore\quad$ **Lookahead bias** for an option, from training on different o
 
 * **Hull \& White** (2017) filter out options with $\delta_{BS} \leq 0.05$ and  $\delta_{BS} \geq 0.95$. Did you consider this as a potential solution to avoid the reported "explosions"?
 
-* **ITM options** are usually **illiquid**, as one might as well trade in the underlying. Why did your data set consist mainly in deep OTM \& deep ITM options?
+* **ITM options** are usually **illiquid**, as one might as well trade in the underlying. Why did your data set consist mainly of deep OTM \& deep ITM options?
